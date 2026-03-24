@@ -33,7 +33,9 @@
         "./skills/vs-options-settings",
         "./skills/vs-file-document-ops",
         "./skills/vs-background-tasks-progress",
-        "./skills/vs-solution-events"
+        "./skills/vs-solution-events",
+        "./skills/vs-info-bar",
+        "./skills/vs-build-events"
       ]
     }
   ]
