@@ -138,12 +138,16 @@ Add it as an embedded resource in your `.csproj`:
 
 ```xml
 <ItemGroup>
+  <!-- Simple case: XAML file name matches the RemoteUserControl class name -->
   <EmbeddedResource Include="MyToolWindowContent.xaml" />
   <Page Remove="MyToolWindowContent.xaml" />
-</ItemGroup>
-```
 
-> The XAML file name must match the `RemoteUserControl` class name (including namespace). If they differ, use `LogicalName` to force the resource name.
+  <!-- When the XAML file name differs from the RemoteUserControl class name -->
+  <EmbeddedResource Include="Views\MyToolWindowView.xaml">
+    <!-- LogicalName must match the fully qualified RemoteUserControl class name + ".xaml" -->
+    <LogicalName>MyCompany.MyExtension.RemoteUI.MyToolWindowContent.xaml</LogicalName>
+  </EmbeddedResource>
+</ItemGroup>
 
 ### Step 5: Create a command to show the tool window
 

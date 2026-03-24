@@ -16,7 +16,8 @@
       "skills": [
         "./skills/vs-message-box",
         "./skills/vs-error-handling",
-        "./skills/vs-tool-window"
+        "./skills/vs-tool-window",
+        "./skills/vs-tool-window-search"
       ]
     }
   ]
