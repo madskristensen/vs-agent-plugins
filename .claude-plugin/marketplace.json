@@ -1,0 +1,23 @@
+{
+  "name": "vs-agent-plugins",
+  "owner": {
+    "name": "madsk"
+  },
+  "metadata": {
+    "description": "Agent skills for Visual Studio IDE extension development",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "vs-extensibility-skills",
+      "description": "Skills for Visual Studio IDE extension development covering UI prompts, notifications, error handling, and more",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/vs-message-box",
+        "./skills/vs-error-handling",
+        "./skills/vs-tool-window"
+      ]
+    }
+  ]
+}
