@@ -19,7 +19,17 @@
         "./skills/vs-tool-window",
         "./skills/vs-tool-window-search",
         "./skills/vs-command-visibility",
-        "./skills/vs-commands"
+        "./skills/vs-commands",
+        "./skills/vs-command-intercept",
+        "./skills/vs-async-threading",
+        "./skills/vs-editor-adornment",
+        "./skills/vs-editor-classifier",
+        "./skills/vs-editor-completion",
+        "./skills/vs-editor-tagger",
+        "./skills/vs-editor-lightbulb",
+        "./skills/vs-editor-text-view-listener",
+        "./skills/vs-editor-quickinfo",
+        "./skills/vs-editor-margin"
       ]
     }
   ]

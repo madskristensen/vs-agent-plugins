@@ -83,7 +83,8 @@ public class MyCommand : Command
 {
     private readonly TraceSource _logger;
 
-    public MyCommand(TraceSource traceSource)
+    public MyCommand(VisualStudioExtensibility extensibility, TraceSource traceSource)
+        : base(extensibility)
     {
         _logger = traceSource;
     }

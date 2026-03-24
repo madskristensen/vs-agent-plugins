@@ -335,9 +335,6 @@ public sealed class MyExtensionPackage : AsyncPackage
 {
     // UIContext GUID must match the GuidSymbol value in the .vsct Symbols block
     private const string UIContextGuid = "11111111-2222-3333-4444-555555555555";
-    termValues: new[] { "HierSingleSelectionName:.cs$" })]
-public sealed class MyExtensionPackage : AsyncPackage
-{
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await RunTestsCommand.InitializeAsync(this);

@@ -148,6 +148,7 @@ Add it as an embedded resource in your `.csproj`:
     <LogicalName>MyCompany.MyExtension.RemoteUI.MyToolWindowContent.xaml</LogicalName>
   </EmbeddedResource>
 </ItemGroup>
+```
 
 ### Step 5: Create a command to show the tool window
 
