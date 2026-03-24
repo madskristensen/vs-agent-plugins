@@ -29,7 +29,11 @@
         "./skills/vs-editor-lightbulb",
         "./skills/vs-editor-text-view-listener",
         "./skills/vs-editor-quickinfo",
-        "./skills/vs-editor-margin"
+        "./skills/vs-editor-margin",
+        "./skills/vs-options-settings",
+        "./skills/vs-file-document-ops",
+        "./skills/vs-background-tasks-progress",
+        "./skills/vs-solution-events"
       ]
     }
   ]
