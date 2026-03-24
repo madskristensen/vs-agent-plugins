@@ -16,3 +16,7 @@ If a particular approach does not apply to a skill's topic, explicitly state tha
 - Clearly label each section or code block with which approach it belongs to.
 - Note any NuGet packages or namespaces required for each approach.
 - Link to the official Microsoft Learn documentation where applicable.
+
+## Marketplace Registry
+
+Any new skill, agent, MCP server, or instruction file must be added to and maintained in the `marketplace.json` file. When creating or removing any of these items, update `marketplace.json` accordingly to keep it in sync with the repository contents.

@@ -17,7 +17,9 @@
         "./skills/vs-message-box",
         "./skills/vs-error-handling",
         "./skills/vs-tool-window",
-        "./skills/vs-tool-window-search"
+        "./skills/vs-tool-window-search",
+        "./skills/vs-command-visibility",
+        "./skills/vs-commands"
       ]
     }
   ]
