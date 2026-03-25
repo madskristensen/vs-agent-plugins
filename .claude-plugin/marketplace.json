@@ -41,10 +41,13 @@
         "./skills/vs-fonts-and-colors",
         "./skills/vs-solution-explorer",
         "./skills/vs-solution-explorer-nodes",
+        "./skills/vs-context-menu",
         "./skills/vs-dynamic-commands",
         "./skills/vs-protocol-handler",
         "./skills/vs-textmate-grammar",
-        "./skills/vs-open-folder"
+        "./skills/vs-open-folder",
+        "./skills/vs-tool-window-toolbar",
+        "./skills/vs-codelens"
       ]
     }
   ]
