@@ -47,7 +47,8 @@
         "./skills/vs-textmate-grammar",
         "./skills/vs-open-folder",
         "./skills/vs-tool-window-toolbar",
-        "./skills/vs-codelens"
+        "./skills/vs-codelens",
+        "./skills/vs-language-server"
       ]
     }
   ]
