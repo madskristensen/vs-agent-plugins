@@ -7,6 +7,15 @@ description: Show progress for background tasks in Visual Studio extensions. Use
 
 When your extension performs long-running work, you must show progress to the user so they know the operation is in progress and how far along it is. Visual Studio provides several progress UI mechanisms — choosing the right one depends on how much attention the task demands.
 
+Without progress feedback, users assume the IDE is frozen and may force-quit Visual Studio, losing unsaved work. The VS progress APIs handle threading, cancellation, and UI placement automatically — building your own progress UI from scratch means duplicating all of that. The Task Status Center is the standard location users have learned to check (NuGet restore, project load, and indexing all use it), so extensions that report progress there feel native rather than bolted on.
+
+**When to use this vs. alternatives:**
+- Long-running background work with progress reporting → **this skill** (Task Status Center / ProgressReporter)
+- One-shot status update ("operation completed") → status bar message (see [vs-message-box](../vs-message-box/SKILL.md))
+- Blocking confirmation before or after an operation → message box (see [vs-message-box](../vs-message-box/SKILL.md))
+- Non-blocking notification that persists → info bar (see [vs-info-bar](../vs-info-bar/SKILL.md))
+- Error or warning to surface in the Error List → [vs-error-list](../vs-error-list/SKILL.md)
+
 ## Decision guide: which progress UI to use
 
 | Mechanism | Blocking? | When to use | User attention |
@@ -432,6 +441,14 @@ protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
 - Use `CompletionActions.RetainOnFaulted` to keep failed tasks visible in the Task Status Center so the user can see the error.
 - The **VisualStudio.Extensibility** progress API is the simplest — just call `progress.Report()` with the current step.
 
+## Troubleshooting
+
+- **Progress bar doesn't appear (Extensibility):** Verify you're calling `StartProgressReportingAsync` and then `progress.Report(...)` with incremented step values. The Task Status Center won't display until the first `Report` call.
+- **Task Status Center entry disappears immediately:** The `ProgressReporter` was disposed (or the `using` block ended) before the work completed. Ensure the `using` block wraps the entire async operation.
+- **Threaded Wait Dialog never shows:** The dialog has a built-in delay (~2 seconds) before appearing. If your operation completes before the delay, the dialog is never shown. This is by design — fast operations shouldn't flash a dialog.
+- **Cancellation doesn't work:** Verify you're passing the `CancellationToken` from the progress API through your entire call chain and checking it between steps with `cancellationToken.ThrowIfCancellationRequested()`.
+- **Status bar progress stays at 100% after completion:** Call `VS.StatusBar.ClearAsync()` (Toolkit) or reset the status bar after the operation completes.
+
 ## What NOT to do
 
 > **Do NOT** use `Thread.Sleep()` or synchronous blocking waits during long operations. They freeze the UI thread completely. Use `await Task.Delay()` and `async`/`await` patterns instead.
@@ -443,6 +460,13 @@ protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
 > **Do NOT** forget to support cancellation for any operation that takes more than a few seconds. Always pass `CancellationToken` through your call chain and check it between steps. Users expect to be able to cancel long-running operations.
 
 > **Do NOT** silently swallow task failures. Use `CompletionActions.RetainOnFaulted` with the Task Status Center so failed tasks remain visible and the user can see what went wrong.
+
+## See also
+
+- [vs-async-threading](../vs-async-threading/SKILL.md) — async/await patterns required for non-blocking progress
+- [vs-message-box](../vs-message-box/SKILL.md) — notifying the user after an operation completes or fails
+- [vs-error-handling](../vs-error-handling/SKILL.md) — logging errors from background tasks
+- [vs-commands](../vs-commands/SKILL.md) — commands are the most common entry point that triggers background work
 
 ## References
 

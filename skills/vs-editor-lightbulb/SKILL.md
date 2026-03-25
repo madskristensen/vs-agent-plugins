@@ -12,6 +12,14 @@ Light bulb actions appear when the user clicks the light bulb icon or presses Ct
 - Suggest code generation based on context
 - Add custom actions to the existing light bulb menu
 
+The light bulb is VS's primary mechanism for presenting actionable code suggestions at the cursor position. It's the standard UX for "something can be improved here" — users learn to look for it and press Ctrl+. as a reflex. For C#/VB, Roslyn's `CodeFixProvider` and `CodeRefactoringProvider` are preferred because they integrate with the analyzer pipeline. For other languages or non-Roslyn scenarios, the MEF-based `ISuggestedAction` API is the way to contribute actions.
+
+**When to use light bulb actions vs. alternatives:**
+- Actionable code fix or refactoring at the cursor → **light bulb** (this skill)
+- Diagnostic squiggles and warnings → taggers (see [vs-editor-tagger](../vs-editor-tagger/SKILL.md))
+- Hover tooltips with information → Quick Info (see [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md))
+- Errors surfaced in the Error List → [vs-error-list](../vs-error-list/SKILL.md)
+
 ---
 
 ## MEF Asset Type Requirement
@@ -328,6 +336,31 @@ Set `HasActionSets => true` on the parent action.
 - **VSSDK / Community Toolkit** — Export `ISuggestedActionsSourceProvider` via MEF. Implement `ISuggestedAction` for each action. Use `ISuggestedActionsSource` to decide when actions are available.
 - Always declare the **MEF component asset type** in `source.extension.vsixmanifest`.
 - Keep `HasSuggestedActionsAsync` lightweight — it runs on every caret movement.
+
+## Troubleshooting
+
+- **Light bulb never appears:** Check the MEF asset type in `.vsixmanifest`. Verify `[ContentType]` matches the file type. Also check that `HasSuggestedActionsAsync` returns `true` for the current caret position.
+- **Actions appear but `Invoke` doesn't modify the document:** Ensure you're applying edits via `ITextBuffer.Replace` or Roslyn workspace APIs. If using Roslyn, verify your `CodeAction` returns non-empty change sets.
+- **`HasSuggestedActionsAsync` causes editor lag:** This method fires on every caret movement. It must be very fast. Move any parsing or analysis to a background thread and cache the result; just check the cache in `HasSuggestedActionsAsync`.
+- **Preview diff doesn't appear:** Ensure `HasPreview` returns `true` and `GetPreviewAsync` returns a valid `Task<object>`. For Roslyn code fixes, preview is automatic.
+- **Light bulb shows for wrong file types:** Missing `[ContentType]` attribute on the provider.
+
+## What NOT to do
+
+> **Do NOT** do expensive work in `HasSuggestedActionsAsync`. It runs on every caret movement and keystroke. Pre-compute action availability on a background thread and return a cached result.
+
+> **Do NOT** use the `ISuggestedAction` MEF API for C#/VB code fixes when Roslyn `CodeFixProvider` / `CodeRefactoringProvider` is available. Roslyn providers integrate with the analyzer pipeline, support preview, and work with `FixAll` automatically.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your suggested actions provider is silently ignored.
+
+> **Do NOT** forget to implement `IDisposable` on your `ISuggestedActionsSource`. VS creates and disposes sources as the caret moves; leaked sources accumulate memory.
+
+## See also
+
+- [vs-editor-suggested-actions](../vs-editor-suggested-actions/SKILL.md) — the complementary skill covering the `ISuggestedAction` interface in detail
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers that produce diagnostic squiggles light bulbs can fix
+- [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md) — hover tooltips as complementary information
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing diagnostics in the Error List alongside light bulb fixes
 
 ## References
 

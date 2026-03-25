@@ -14,6 +14,15 @@ Open Folder lets users open any codebase in Visual Studio without a project or s
 
 All Open Folder APIs are in the `Microsoft.VisualStudio.Workspace.*` namespaces and are MEF-based.
 
+Open Folder extensibility matters when your extension needs to work outside the traditional project/solution model — for example, supporting lightweight editing of Python, Rust, Go, or JavaScript projects that don't use MSBuild. Without Open Folder providers, VS treats these folders as inert file trees with no build, navigation, or debug support.
+
+**When to use Open Folder vs. alternatives:**
+- Custom build/debug contexts for non-MSBuild file types → **Open Folder file context providers** (this skill)
+- Symbol scanning for Go To in non-project files → **Open Folder file scanners** (this skill)
+- Full language support (completion, diagnostics, navigation) → [vs-language-server](../vs-language-server/SKILL.md) (works alongside Open Folder)
+- Adding context menu actions in Solution Explorer for project files → [vs-context-menu](../vs-context-menu/SKILL.md)
+- Reacting to solution/project open/close events → [vs-solution-events](../vs-solution-events/SKILL.md)
+
 ## VisualStudio.Extensibility (out-of-process)
 
 **Not supported.** The new extensibility model does not have Open Folder workspace APIs. The `Microsoft.VisualStudio.Workspace.*` APIs require in-process MEF composition. If your VisualStudio.Extensibility extension needs Open Folder support, use an in-process hybrid component.
@@ -400,6 +409,21 @@ Common causes:
 TextMate grammars work in Open Folder out of the box. If colorization isn't appearing, see the `vs-textmate-grammar` skill for registration steps.
 
 ---
+
+## What NOT to do
+
+> **Do NOT** assume a solution is loaded. In Open Folder mode, `IVsSolution` reports no projects. Guard against null project references in any shared code.
+
+> **Do NOT** use `ProvideAutoLoad` with `SolutionExists` UI context for Open Folder features. Use the Open Folder UI context GUID (`4646B819-1AE0-4E79-97F4-8A8176FDD664`) instead.
+
+> **Do NOT** block the UI thread in file scanners or context providers. These run during indexing and will freeze VS if synchronous. Always use `async Task` implementations.
+
+## See also
+
+- [vs-language-server](../vs-language-server/SKILL.md) — full language support (completion, diagnostics) for open-folder languages
+- [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md) — syntax highlighting for custom file types in Open Folder
+- [vs-solution-events](../vs-solution-events/SKILL.md) — detecting solution vs. folder open/close
+- [vs-context-menu](../vs-context-menu/SKILL.md) — context menus in Solution Explorer (project-based)
 
 ## Related documentation
 

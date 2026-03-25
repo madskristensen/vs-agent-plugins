@@ -12,6 +12,14 @@ Text view listeners let you react when editors are opened, closed, or when their
 - React to text changes for live analysis or decoration
 - Clean up resources when an editor is closed
 
+Text view listeners are the foundational hook that most editor extensions use as their entry point. Adornments, taggers, classifiers, and margins all need to know when an editor opens — but text view listeners are also useful on their own for per-document state initialization or for extensions that need to react to text changes without producing visual output. The VisualStudio.Extensibility model provides `ITextViewOpenClosedListener` as a simpler, out-of-process alternative.
+
+**When to use text view listeners vs. alternatives:**
+- React to editor open/close for initialization → **text view listener** (this skill)
+- Add visual decorations when an editor opens → combine with [vs-editor-adornment](../vs-editor-adornment/SKILL.md)
+- React to text changes for tagging → use a tagger's `ITextBuffer.Changed` subscription (see [vs-editor-tagger](../vs-editor-tagger/SKILL.md))
+- React to document save/close events → [vs-file-document-ops](../vs-file-document-ops/SKILL.md)
+
 ---
 
 ## MEF Asset Type Requirement
@@ -249,6 +257,30 @@ if (textView.TextBuffer.Properties.TryGetProperty(
 - **VSSDK / Community Toolkit** — Export `IWpfTextViewCreationListener` or `ITextViewCreationListener` via MEF. Subscribe to `TextBuffer.Changed` and `Closed` events. Unsubscribe on close.
 - Always declare the **MEF component asset type** in `source.extension.vsixmanifest` for the VSSDK approach.
 - Prefer `PredefinedTextViewRoles.Document` to avoid triggering in non-document editors.
+
+## Troubleshooting
+
+- **Listener never fires:** Check the MEF asset type in `.vsixmanifest`. Verify `[ContentType]` and `[TextViewRole]` match. For Extensibility, ensure the `[VisualStudioContribution]` attribute is present.
+- **Listener fires for peek, diff, and embedded editors:** You're missing `[TextViewRole(PredefinedTextViewRoles.Document)]`. Without it, the listener fires for all editor instances.
+- **Memory leak when opening/closing files:** You're not unsubscribing from text view events in `ITextView.Closed`. Always subscribe to `Closed` early and clean up there.
+- **Text changes not detected:** Subscribe to `ITextBuffer.Changed` (VSSDK/Toolkit) or implement `ITextViewChangedListener` (Extensibility) — text view creation alone doesn't track ongoing edits.
+
+## What NOT to do
+
+> **Do NOT** do heavy work in the text view creation callback. It runs on the UI thread and blocks the editor from appearing. Offload initialization to a background thread.
+
+> **Do NOT** forget the `[TextViewRole]` attribute. Without it, your listener triggers for every text view instance — including peek definition, diff views, and embedded editors — which may not be intended and wastes resources.
+
+> **Do NOT** forget to unsubscribe from events when the text view closes. Leaked subscriptions cause memory leaks and can crash when the recycled buffer triggers your stale handler.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for in-process extensions.
+
+## See also
+
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — adornments initialized via text view listeners
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers that react to text changes
+- [vs-editor-margin](../vs-editor-margin/SKILL.md) — margins initialized per-editor
+- [vs-file-document-ops](../vs-file-document-ops/SKILL.md) — document lifecycle events
 
 ## References
 

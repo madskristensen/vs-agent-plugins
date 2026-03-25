@@ -11,6 +11,14 @@ Classifiers assign classification types (keyword, comment, string, etc.) to span
 - Add extra coloring to existing languages (e.g., highlight specific identifiers)
 - Mark diagnostic regions with distinct formatting
 
+Classifiers are the foundation of syntax highlighting in VS. They run on every editor render pass, so performance is critical — a slow classifier makes typing feel laggy across the entire editor. Classifiers also integrate with the VS Fonts & Colors system, allowing users to customize your classification colors through Tools > Options.
+
+**When to use classifiers vs. alternatives:**
+- Syntax coloring for a custom language or DSL → **classifier** (this skill)
+- Simple keyword/syntax coloring via grammar file (no code) → TextMate grammar (see [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md))
+- Visual decorations, highlights, or overlays on text → adornments (see [vs-editor-adornment](../vs-editor-adornment/SKILL.md))
+- Custom fonts/colors settings that users can configure → [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md)
+
 ---
 
 ## MEF Asset Type Requirement
@@ -260,6 +268,32 @@ To add classifications on top of an existing language (e.g., highlight custom id
 - Always declare the **MEF component asset type** in `source.extension.vsixmanifest`.
 - For new languages, also define a content type and file extension mapping.
 - Keep `GetClassificationSpans` fast — it runs on every render pass.
+
+## Troubleshooting
+
+- **Classifier doesn't load / text isn't colored:** Check the MEF asset type in `.vsixmanifest`. Also verify `[ContentType]` matches the file type you're testing with.
+- **Classification format definition doesn't appear in Fonts & Colors settings:** Ensure `[UserVisible(true)]` is set on the `ClassificationFormatDefinition`. Without it, the classification exists internally but isn't exposed in Tools > Options.
+- **Colors look wrong or disappear in Dark theme:** You're hard-coding RGB colors. Use `ClassificationFormatDefinition` properties that respect VS theme tokens, or define separate colors for Light/Dark/High Contrast. See [vs-theming](../vs-theming/SKILL.md).
+- **Editor becomes sluggish after adding classifier:** `GetClassificationSpans` is doing too much parsing. Pre-parse on a background thread (triggered by `ITextBuffer.Changed`) and cache results; return from cache in `GetClassificationSpans`.
+- **`ClassificationChanged` event causes infinite loop:** Your `ClassificationChanged` handler is triggering a re-classification. Guard against re-entrancy.
+
+## What NOT to do
+
+> **Do NOT** do heavy parsing or I/O in `GetClassificationSpans`. It runs synchronously on every render pass — any delay is directly visible as editor lag. Parse on a background thread and cache the results.
+
+> **Do NOT** hard-code colors in `ClassificationFormatDefinition` without considering Dark and High Contrast themes. Use VS theme-aware color tokens or define per-theme overrides.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your classifier provider and format definitions are silently ignored.
+
+> **Do NOT** forget to fire `ClassificationChanged` when your cached parse results update. Without it, the editor won't re-query your classifier and stale highlighting persists until the user scrolls.
+
+## See also
+
+- [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md) — lightweight syntax coloring without writing a classifier
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers as a lower-level alternative to classifiers
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — visual decorations beyond text coloring
+- [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md) — integrating with the VS Fonts & Colors settings
+- [vs-theming](../vs-theming/SKILL.md) — theme-aware color definitions
 
 ## References
 

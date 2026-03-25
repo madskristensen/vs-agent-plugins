@@ -9,6 +9,14 @@ TextMate grammars provide lightweight syntax highlighting, bracket matching, and
 
 A TextMate grammar is a `.tmlanguage`, `.plist`, or `.json` file that defines regex-based scope rules. You bundle it in a VSIX extension, register it with a `.pkgdef` file, and Visual Studio picks it up for any matching file extension.
 
+TextMate grammars are the fastest path to syntax highlighting for a new file type. They require no compiled code, work with VS's existing colorization pipeline, and can often be ported directly from VS Code or Sublime Text. For languages that also need IntelliSense, pair a TextMate grammar with an LSP server — LSP handles features but not colorization.
+
+**When to use this vs. alternatives:**
+- Quick syntax coloring for a new file type with no compiled code → **TextMate grammar** (this skill)
+- Dynamic/context-dependent highlighting or custom classification types → MEF classifier (see [vs-editor-classifier](../vs-editor-classifier/SKILL.md))
+- Full IntelliSense, diagnostics, go-to-definition → LSP (see [vs-language-server](../vs-language-server/SKILL.md)), which can include a TextMate grammar for colorization
+- User-customizable colors for classification items → [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md)
+
 ## When to use TextMate vs. a full classifier
 
 | Approach | Best for |
@@ -349,6 +357,30 @@ This is useful for personal use but not for distribution.
 4. If colors don't show, close and reopen the file — the grammar is loaded on first file open.
 
 ---
+
+## Troubleshooting
+
+- **No syntax highlighting after installing extension:** Verify the `.pkgdef` registers the grammar repository path correctly (`$PackageFolder$\Grammars`). Ensure all grammar files have Build Action = Content and Include in VSIX = true.
+- **Colors appear but are wrong/incomplete:** Check regex patterns in the `.tmLanguage.json` — overly broad patterns can match too much. Test the grammar in VS Code first (same engine, faster iteration).
+- **Grammar works in VS Code but not in Visual Studio:** VS doesn't support all TextMate features. Avoid `begin/while` patterns (use `begin/end` instead). VS also ignores `package.json` contributions — only the `.pkgdef` registration matters.
+- **File extension not recognized:** The `.pkgdef` must include a content type mapping for the file extension. Verify the grammar's `fileTypes` or `scopeName` matches what VS expects.
+- **Colors don't match the VS theme:** Bundle a `.tmTheme` file with theme-appropriate colors, or rely on the default scope-to-classification mappings which use VS theme colors.
+
+## What NOT to do
+
+> **Do NOT** include `package.json`, VS Code commands, or VS Code snippet files in your VS TextMate extension. VS ignores these — only grammar (`.tmLanguage`/`.json`) and theme (`.tmTheme`) files are used.
+
+> **Do NOT** use `begin/while` patterns in grammars targeting Visual Studio. They're not supported. Use `begin/end` patterns instead.
+
+> **Do NOT** write a full MEF `IClassifier` just for syntax coloring. TextMate grammars achieve the same result with no compiled code and are portable across editors.
+
+> **Do NOT** register grammars via MEF exports. TextMate grammars are registered via `.pkgdef` files pointing to a grammar repository directory.
+
+## See also
+
+- [vs-editor-classifier](../vs-editor-classifier/SKILL.md) — MEF classifiers for dynamic/context-dependent highlighting
+- [vs-language-server](../vs-language-server/SKILL.md) — LSP servers that pair with TextMate grammars for full language support
+- [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md) — user-customizable colors for classification items
 
 ## Related documentation
 

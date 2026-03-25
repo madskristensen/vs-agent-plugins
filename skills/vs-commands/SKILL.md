@@ -7,6 +7,15 @@ description: Add commands (menu items, toolbar buttons) to Visual Studio extensi
 
 A command is any user-invokable action — menu items, toolbar buttons, context menu entries, keyboard shortcuts. Each command has an ID, a display name, an optional icon, a placement (where it appears in the UI), and an execution handler.
 
+Commands are the primary way users interact with an extension. Without a command, your extension has no entry point — the user can't trigger it. In the VisualStudio.Extensibility model, commands are fully self-contained (placement, icon, and metadata are declared in code), eliminating the `.vsct` XML file that Toolkit and VSSDK extensions require. The `.vsct` approach gives finer control over placement and menu merging but is harder to author and debug.
+
+**When to use this vs. alternatives:**
+- Add an action to a menu, toolbar, or context menu → **this skill**
+- Add a context menu entry specifically → combine with [vs-context-menu](../vs-context-menu/SKILL.md)
+- Show/hide commands based on context → combine with [vs-command-visibility](../vs-command-visibility/SKILL.md)
+- Create commands that change text/state dynamically → [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md)
+- React to existing VS commands (intercept Copy, Build, etc.) → [vs-command-intercept](../vs-command-intercept/SKILL.md)
+
 ## File organization
 
 Every command class should be in its own `.cs` file inside a top-level `Commands/` folder in the project:
@@ -533,6 +542,36 @@ commandService.AddCommand(menuItem);
 - **`[ProvideMenuResource("Menus.ctmenu", 1)]`** is required on the package for Toolkit and VSSDK — without it, VS won't load the command table.
 - Prefer `AsyncPackage` with `AllowsBackgroundLoading = true` for VSSDK. The Toolkit uses `ToolkitPackage` which already handles this.
 - Never run heavy logic on the UI thread inside `Execute`. Offload to a background thread and switch back with `JoinableTaskFactory.SwitchToMainThreadAsync()` only when needed.
+
+## Troubleshooting
+
+- **Command doesn't appear in any menu:** For Extensibility, verify the `[VisualStudioContribution]` attribute is on the command class and that `Placements` is set in `CommandConfiguration`. For Toolkit/VSSDK, verify `[ProvideMenuResource("Menus.ctmenu", 1)]` is on the package, the `.vsct` button definition exists, and the GUID/ID symbols match between `.vsct` and code.
+- **Icon doesn't display (Toolkit / VSSDK):** Ensure all three pieces are in the `.vsct` button: `<Include href="KnownImageIds.vsct"/>` at the top of the command table, `guid="ImageCatalogGuid"` on the `<Icon>` element, and `<CommandFlag>IconIsMoniker</CommandFlag>` on the button. Missing any one of these causes a blank icon with no error.
+- **Command is visible but always disabled:** For Extensibility, check `EnabledWhen` constraints in `CommandConfiguration`. For Toolkit/VSSDK, check your `BeforeQueryStatus` handler — it may be setting `Enabled = false` unconditionally.
+- **"Command already registered" exception at startup:** Two commands share the same GUID + ID pair. Each command must have a unique `CommandID`. Check for duplicate `IDSymbol` values in your `.vsct` file.
+- **Command handler never fires:** For Toolkit, confirm the `[Command(PackageIds.XYZ)]` attribute references the correct generated constant. For VSSDK, confirm `InitializeAsync` calls your command's `InitializeAsync` and that the `CommandID` matches the `.vsct` symbol.
+- **Keyboard shortcut doesn't work:** For Extensibility, verify the `Shortcuts` array in `CommandConfiguration`. For `.vsct`, ensure the `<KeyBinding>` element uses `editor="guidVSStd97"` for global scope and that the key combo doesn't conflict with an existing VS binding.
+
+## What NOT to do
+
+> **Do NOT** do heavy or long-running work inside the command's `Execute` or `ExecuteCommandAsync` handler on the UI thread. Offload to a background thread with `Task.Run` or `await TaskScheduler.Default`, then switch back to the UI thread only when needed. See [vs-async-threading](../vs-async-threading/SKILL.md).
+
+> **Do NOT** forget `[ProvideMenuResource("Menus.ctmenu", 1)]` on the package class (Toolkit/VSSDK). Without it, Visual Studio never loads the command table and all your buttons silently fail to appear.
+
+> **Do NOT** reuse GUID + ID pairs across commands. Each command needs a unique `CommandID`. Duplicates cause an exception at startup and neither command will work.
+
+> **Do NOT** hard-code command GUIDs and IDs as inline strings in multiple places. Define them as constants in a shared class (or use the Toolkit's generated `PackageIds` / `PackageGuids` classes) to prevent mismatches.
+
+> **Do NOT** use synchronous `Package` instead of `AsyncPackage` (VSSDK) or `ToolkitPackage` (Toolkit). Synchronous packages force VS to load your extension on the UI thread at startup, degrading IDE launch time.
+
+## See also
+
+- [vs-context-menu](../vs-context-menu/SKILL.md) — adding commands to right-click context menus
+- [vs-command-visibility](../vs-command-visibility/SKILL.md) — showing/hiding commands based on context
+- [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md) — commands that change text or state dynamically
+- [vs-command-intercept](../vs-command-intercept/SKILL.md) — intercepting built-in VS commands
+- [vs-async-threading](../vs-async-threading/SKILL.md) — async patterns for command execution handlers
+- [vs-error-handling](../vs-error-handling/SKILL.md) — wrapping command handlers in try/catch
 
 ## References
 

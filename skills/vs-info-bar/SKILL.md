@@ -7,6 +7,15 @@ description: Show InfoBar (gold bar) notifications in Visual Studio extensions. 
 
 An InfoBar (also called a gold bar or yellow bar) is a non-blocking notification that appears at the top of a tool window, document window, or the main IDE window. Use it when you need the user's attention but don't want to interrupt their workflow.
 
+InfoBars are the right default for most extension notifications because they're non-blocking — the user can continue working and respond when ready. They persist until explicitly dismissed (unlike status bar messages that disappear) and support actionable links and buttons. Using a message box when an info bar would suffice trains users to reflexively dismiss dialogs, reducing the effectiveness of truly important prompts.
+
+**When to use an InfoBar vs. alternatives:**
+- Important but non-blocking notification with actionable links → **InfoBar** (this skill)
+- Blocking question the user must answer before continuing → message box (see [vs-message-box](../vs-message-box/SKILL.md))
+- Brief, non-critical status update → status bar (see [vs-message-box](../vs-message-box/SKILL.md))
+- Errors with source location for click-to-navigate → Error List (see [vs-error-list](../vs-error-list/SKILL.md))
+- Detailed log output → Output Window (see [vs-error-handling](../vs-error-handling/SKILL.md))
+
 ## Decision guide: when to use an InfoBar vs. other notifications
 
 | Mechanism | Blocking? | When to use |
@@ -503,3 +512,18 @@ sink._cookie = cookie;
 > **Do NOT** forget to call `Unadvise` (VSSDK) or handle `OnClosed` (Toolkit) to clean up event subscriptions when the InfoBar is dismissed. Leaked event handlers accumulate memory and can cause exceptions when the InfoBar host is recycled.
 
 > **Do NOT** use `System.Diagnostics.Process.Start` for hyperlinks in InfoBar actions without validating the URL. InfoBar action text is user-visible but the URL you open should be a known, constant URL — never construct URLs from untrusted input.
+
+## Troubleshooting
+
+- **InfoBar doesn't appear:** For Toolkit, verify the tool window GUID passed to `VS.InfoBar.CreateAsync` is valid. For VSSDK, ensure you're obtaining the correct `IVsInfoBarHost` — the main window host differs from per-tool-window hosts.
+- **InfoBar appears but action clicks do nothing:** Verify your `ActionItemClicked` handler (Toolkit) or `IVsInfoBarUIEvents.OnActionItemClicked` handler (VSSDK) is subscribed. For VSSDK, verify `uiElement.Advise(this, out _)` was called.
+- **Multiple InfoBars stack and become scrollable:** Don't show more than 2-3 InfoBars in the same window. Dismiss previous ones before showing new ones, or consolidate into a single InfoBar with multiple actions.
+- **InfoBar persists after it should be gone:** Call `infoBar.Close()` (Toolkit) or `uiElement.Close()` (VSSDK) when the notification is resolved.
+- **Global InfoBar causes layout shift:** Don't use the main window InfoBar host for extension-specific messages. Attach to the relevant tool window or document window instead.
+
+## See also
+
+- [vs-message-box](../vs-message-box/SKILL.md) — blocking notifications when infobars aren't sufficient
+- [vs-error-handling](../vs-error-handling/SKILL.md) — logging and Output Window for non-UI notification
+- [vs-error-list](../vs-error-list/SKILL.md) — error/warning entries with click-to-navigate
+- [vs-tool-window](../vs-tool-window/SKILL.md) — tool windows that host InfoBars

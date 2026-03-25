@@ -12,6 +12,14 @@ Command visibility determines **when** a command appears in menus, toolbars, or 
 
 Best practice: use declarative constraints for the initial visibility so the package is not loaded just to hide a command, then use `BeforeQueryStatus` for fine-grained runtime logic after the package is already loaded.
 
+Visibility control prevents menu clutter and keeps the VS UI relevant to the user's current context. Without it, every extension's commands appear all the time, creating a noisy and confusing experience. The key architectural insight is that declarative constraints work *without loading your extension* — VS evaluates them from the `.vsct` metadata or `VisibleWhen` attributes at startup. Using only `BeforeQueryStatus` forces VS to load your package just to determine if a command should be hidden, degrading startup performance.
+
+**When to use this vs. alternatives:**
+- Show/hide commands based on file type, solution state, or UI context → **this skill**
+- Add a new command to a menu → [vs-commands](../vs-commands/SKILL.md)
+- Add a command to a right-click context menu → [vs-context-menu](../vs-context-menu/SKILL.md)
+- Create commands that change their text or checked state dynamically → [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md)
+
 ---
 
 ## 1. VisualStudio.Extensibility (out-of-process, recommended)
@@ -455,6 +463,14 @@ When `Supported = false`:
 - **Prefer declarative constraints** (`<VisibilityConstraints>` / `VisibleWhen`) for initial visibility. This avoids loading the package just to hide a command.
 - **Use `BeforeQueryStatus`** only for conditions that cannot be expressed declaratively (e.g., checking runtime state, inspecting file contents).
 
+## Troubleshooting
+
+- **Command appears briefly then disappears (flash):** The command is missing `DefaultInvisible` in `.vsct`. Without it, the command starts visible and then hides when `BeforeQueryStatus` runs — causing a visible flash on startup.
+- **Command stays hidden even when UIContext is active:** Check that both `DynamicVisibility` and the correct `VisibilityConstraints` entry are present. Without `DynamicVisibility`, VS ignores runtime visibility changes entirely.
+- **`BeforeQueryStatus` never fires:** The command needs `DynamicVisibility` in `.vsct`. Also verify the package is loaded — `BeforeQueryStatus` only runs after the package is initialized.
+- **`Command.Supported = false` doesn't hide the command:** `Supported` doesn't mean "visible." Setting `Supported = false` delegates visibility back to the UIContext rule associated with the command. Setting `Visible = false` actually hides it.
+- **UIContext rule never activates:** Verify the expression syntax in `[ProvideUIContextRule]`. Terms must match the `termNames` and `termValues` arrays exactly. A typo in the GUID or an invalid operator causes silent failure.
+
 ## What NOT to do
 
 > **Do NOT** use `BeforeQueryStatus` as the **sole** visibility mechanism. It forces the package to load just to evaluate whether a command should be visible. Use **declarative** `<VisibilityConstraints>` (Toolkit/VSSDK) or `VisibleWhen` (Extensibility) for initial show/hide — these work **before** the package loads. Reserve `BeforeQueryStatus` for conditions that require runtime logic.
@@ -466,6 +482,13 @@ When `Supported = false`:
 > **Do NOT** hard-code UIContext GUIDs in multiple places. Store the GUID in `.vsct` `<Symbols>` (the Toolkit auto-generates it into `PackageGuids`) and reference it from there. Duplicate GUIDs that drift apart cause visibility rules to silently stop working.
 
 > **Do NOT** use `DTE.Commands` or `EnvDTE.CommandEvents` to manage visibility in new extensions. These are legacy automation APIs that require COM reference management and don't participate in the modern UIContext/activation constraint system.
+
+## See also
+
+- [vs-commands](../vs-commands/SKILL.md) — defining commands that visibility rules control
+- [vs-context-menu](../vs-context-menu/SKILL.md) — context menus where visibility is especially important
+- [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md) — changing command text or checked state at runtime
+- [vs-command-intercept](../vs-command-intercept/SKILL.md) — intercepting commands vs. hiding them
 
 ## References
 

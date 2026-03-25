@@ -7,6 +7,14 @@ description: Handle custom URI protocol deep links (e.g. myext://open/file) in V
 
 A protocol handler lets you register a custom URI scheme (e.g. `myext://action/param`) with Windows so that clicking such a link in a browser, email, or another app launches Visual Studio and passes the URI to your extension for processing.
 
+Protocol handlers enable deep linking into your extension from external sources. This is useful for CI/CD dashboards that link to specific code locations, issue trackers that open VS with context, or onboarding flows that configure the IDE with one click. Without a protocol handler, users must manually open VS, navigate to the right file, and apply settings themselves.
+
+**When to use this vs. alternatives:**
+- Deep link from browser/email/external app into VS → **Protocol handler** (this skill)
+- Respond to solution/project open/close events → [vs-solution-events](../vs-solution-events/SKILL.md)
+- Add command-line launch arguments for automation → `ProvideAppCommandLine` (covered in this skill)
+- Open files or documents programmatically from within VS → [vs-file-document-ops](../vs-file-document-ops/SKILL.md)
+
 ## How it works
 
 1. A JSON manifest bundled in the VSIX registers the protocol with Windows during extension installation.
@@ -213,6 +221,27 @@ devenv.exe /MyExtHandler "myext://open/some-resource"
 - Use `Uri.TryCreate` with `UriKind.Absolute` to reject malformed input.
 
 ---
+
+## Troubleshooting
+
+- **Protocol link does nothing / Windows doesn't offer to open VS:** The VSIX hasn't been installed in a regular VS instance (not experimental hive). Protocol registration happens during VSIX installation, not during F5 debugging.
+- **VS opens but extension doesn't activate:** Verify `[ProvideAppCommandLine]` switch name matches the switch in your `protocol.json` manifest. Ensure `DemandLoad = 1` is set so VS force-loads your package.
+- **URI parameters are empty or garbled:** Use `Uri.TryCreate` with `UriKind.Absolute` and `HttpUtility.ParseQueryString` for query parameters. Don't try to parse URIs manually with string splitting.
+- **Works in dev but not after publish:** Ensure `protocol.json` is included in the VSIX as content (Build Action = Content, Include in VSIX = true).
+
+## What NOT to do
+
+> **Do NOT** use URI parameters directly in file paths, process arguments, or SQL queries. Protocol URIs come from untrusted external sources — always validate against an allowlist of actions and sanitize paths to prevent traversal attacks.
+
+> **Do NOT** test protocol handlers using F5 debugging. The experimental hive doesn't register protocols with Windows. Install the VSIX in a regular VS instance.
+
+> **Do NOT** register generic protocol schemes that might conflict with other applications (e.g. `vs://`). Use a unique scheme that includes your extension name.
+
+## See also
+
+- [vs-solution-events](../vs-solution-events/SKILL.md) — detecting solution/folder open events triggered by protocol links
+- [vs-file-document-ops](../vs-file-document-ops/SKILL.md) — opening files programmatically after protocol activation
+- [vs-commands](../vs-commands/SKILL.md) — executing commands from protocol handler code
 
 ## Related documentation
 

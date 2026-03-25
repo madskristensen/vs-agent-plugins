@@ -7,6 +7,15 @@ description: Create and show tool windows in Visual Studio extensions. Use when 
 
 A tool window is a dockable panel in Visual Studio (like Solution Explorer or Error List). It consists of an outer shell managed by VS and custom content provided by your extension.
 
+Tool windows give extensions a persistent, dockable surface whose position, visibility, and dock state VS saves automatically across sessions. Without them, interactive extensions are limited to transient dialogs or output text. The out-of-process model (VisualStudio.Extensibility) renders tool window UI via Remote UI in a separate process, so a crash in your extension can't take down the IDE. The in-process models (Toolkit / VSSDK) use standard WPF `UserControl`s rendered directly in the VS shell.
+
+**When to use a tool window vs. alternatives:**
+- Persistent UI the user returns to repeatedly → **tool window**
+- One-shot confirmation or choice → message box (see [vs-message-box](../vs-message-box/SKILL.md))
+- Non-blocking notification → info bar (see [vs-info-bar](../vs-info-bar/SKILL.md))
+- UI tightly coupled to a specific document → editor margin (see [vs-editor-margin](../vs-editor-margin/SKILL.md))
+- Detailed log output → Output Window pane (see [vs-error-handling](../vs-error-handling/SKILL.md))
+
 ---
 
 ## 1. VisualStudio.Extensibility (out-of-process, recommended)
@@ -456,6 +465,15 @@ public sealed class MyPackage : AsyncPackage
 - Always `Dispose` your tool window content to avoid leaks.
 - Place tool window commands under **View > Other Windows** by convention.
 
+## Troubleshooting
+
+- **Tool window doesn't appear in the menu:** Ensure the command to show the tool window is registered. For Extensibility, verify the `[VisualStudioContribution]` attribute is on both the `ToolWindow` class and the `Command` class. For Toolkit, ensure `this.RegisterToolWindows()` is called in `InitializeAsync`.
+- **XAML content is blank (Extensibility / Remote UI):** Verify the `.xaml` file is set as `EmbeddedResource` with `<Page Remove="..."/>` in the `.csproj`. If the XAML file name doesn't match the `RemoteUserControl` class name, set the `<LogicalName>` to the fully qualified class name + `.xaml`.
+- **Tool window content flickers or is empty on first open (Toolkit):** You're doing async work in the `Pane` constructor instead of `CreateAsync`. Move all async initialization to the `CreateAsync` factory method.
+- **"Cannot create tool window" exception (VSSDK):** The `[ProvideToolWindow]` attribute is missing from the package class, or the GUID on the `ToolWindowPane` doesn't match the one in the attribute.
+- **Tool window state not persisted between sessions:** For Extensibility, check that `AllowAutoCreation` is set appropriately in `ToolWindowConfiguration`. For VSSDK / Toolkit, verify the `[ProvideToolWindow]` `Style` and `Window` parameters are set.
+- **Memory leak when opening/closing the tool window:** You're not disposing the `RemoteUserControl` (Extensibility) or not unsubscribing from events in the WPF `UserControl`. Override `Dispose` and clean up.
+
 ## What NOT to do
 
 > **Do NOT** do slow or async work in the `ToolWindowPane` constructor (VSSDK) or the `Pane` constructor (Community Toolkit). These constructors run on the UI thread and will freeze Visual Studio. For VSSDK, do async work in `AsyncPackage.InitializeAsync`, then call `SwitchToMainThreadAsync` before setting `Content`. For the Community Toolkit, do async work in `CreateAsync`.
@@ -471,6 +489,14 @@ public sealed class MyPackage : AsyncPackage
 > **Do NOT** forget to `Dispose` your `RemoteUserControl` (VisualStudio.Extensibility) or unsubscribe from events in your WPF `UserControl`. Undisposed tool window content causes memory leaks that accumulate every time the tool window is opened and closed.
 
 > **Do NOT** use `ToolWindowPane` with the older `Package.FindToolWindow` (synchronous). Use `AsyncPackage` and the async initialization pattern shown in this skill. Old VSSDK templates and tutorials may still show the synchronous pattern — do not follow them.
+
+## See also
+
+- [vs-commands](../vs-commands/SKILL.md) — every tool window needs a command to open it
+- [vs-async-threading](../vs-async-threading/SKILL.md) — async initialization patterns for tool window content
+- [vs-theming](../vs-theming/SKILL.md) — respecting VS themes (Dark, Light, High Contrast) in tool window UI
+- [vs-tool-window-toolbar](../vs-tool-window-toolbar/SKILL.md) — adding a toolbar to the tool window frame
+- [vs-tool-window-search](../vs-tool-window-search/SKILL.md) — adding a search box to the tool window frame
 
 ## References
 

@@ -7,11 +7,19 @@ description: Correctly handle async/await patterns, thread switching, and Joinab
 
 Visual Studio is a single-threaded apartment (STA) application. Many services and COM objects require the **main (UI) thread**. Incorrect threading causes deadlocks, UI freezes, or crashes. This skill covers the correct, non-blocking patterns for all three extensibility approaches.
 
+Threading is a cross-cutting concern that affects every part of an extension — commands, tool windows, editor components, solution event handlers. The core problem: VS COM objects must be accessed from the UI thread, but blocking that thread freezes the entire IDE (not just your extension). `JoinableTaskFactory` exists specifically to solve the deadlock that occurs when the UI thread synchronously waits for background work that itself needs the UI thread. Out-of-process extensions (VisualStudio.Extensibility) sidestep the problem entirely because they run in a separate process with no UI thread of their own — the SDK marshals calls across the process boundary automatically.
+
+**When this skill applies vs. alternatives:**
+- Any extension code that calls `IVs*` COM interfaces or accesses VS services → **this skill** (thread switching)
+- Showing progress during long operations → combine with [vs-background-tasks-progress](../vs-background-tasks-progress/SKILL.md)
+- Error handling in async code (catching `OperationCanceledException`, logging) → combine with [vs-error-handling](../vs-error-handling/SKILL.md)
+- Responding to solution/project load events asynchronously → combine with [vs-solution-events](../vs-solution-events/SKILL.md)
+
 ---
 
 ## Threading Analyzer — install first
 
-Always install the **Microsoft.VisualStudio.Threading.Analyzers** NuGet package in every VS extension project. It catches threading mistakes at compile time.
+Always install the **Microsoft.VisualStudio.Threading.Analyzers** NuGet package in every VS extension project. It catches threading mistakes at compile time. It's included with the VSIX Community Toolkit.
 
 **NuGet package:** `Microsoft.VisualStudio.Threading.Analyzers`
 
@@ -649,6 +657,15 @@ void UseVsService()
 | Long blocking with dialog | `ThreadHelper.JoinableTaskFactory.Run("title", async (progress, ct) => ...)` |
 | Deferred UI work at idle | `await ThreadHelper.JoinableTaskFactory.StartOnIdle(async delegate { ... });` |
 
+## Troubleshooting
+
+- **IDE freezes (hangs) when running extension code:** You're blocking the UI thread with `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`. Replace with `await` or wrap in `JoinableTaskFactory.Run`. Run the VSTHRD analyzers to find all instances.
+- **Deadlock on `SwitchToMainThreadAsync`:** The UI thread is blocked by a synchronous `.Result`/`.Wait()` call further up the call stack, preventing `SwitchToMainThreadAsync` from completing. Audit the call chain for any synchronous blocking. Use `JoinableTaskFactory.Run` as the outermost sync-over-async bridge.
+- **`InvalidCastException` or `RPC_E_WRONG_THREAD` when calling IVs* services:** You're calling STA COM objects from a background thread. Add `await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()` before the call, or add `ThreadHelper.ThrowIfNotOnUIThread()` to catch it early in debug.
+- **VS crashes with no clear stack trace:** An `async void` method threw an unhandled exception. Search for `async void` in your codebase and convert to `async Task` with `JoinableTaskFactory.RunAsync` for fire-and-forget scenarios.
+- **VSTHRD analyzers show warnings but extension seems to work:** The threading issues are intermittent — they may only deadlock under load or on slower machines. Fix all VSTHRD warnings; they represent real bugs that will eventually surface in production.
+- **`ConfigureAwait(false)` causes intermittent failures:** In VS extension code, `ConfigureAwait(false)` bypasses the `JoinableTaskFactory` synchronization context. Remove it and use explicit thread switching (`await TaskScheduler.Default`) instead.
+
 ## What NOT to do
 
 > **Do NOT** use `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` on tasks in VS extension code. These synchronously block the calling thread and cause deadlocks when the blocked thread is the UI thread. Use `await` or `JoinableTaskFactory.Run` instead. The VSTHRD002 analyzer will catch this.
@@ -666,6 +683,14 @@ void UseVsService()
 > **Do NOT** call `SwitchToMainThreadAsync()` without `await`. The call returns a `JoinableTaskFactory.MainThreadAwaitable` that does nothing until awaited. Forgetting `await` means you're still on the background thread. The VSTHRD004 analyzer catches this.
 
 > **Do NOT** use `Lazy<T>` for async initialization. Use `AsyncLazy<T>` from `Microsoft.VisualStudio.Threading` and pass `JoinableTaskFactory` to its constructor. `Lazy<T>` with an async factory can deadlock because its internal lock doesn't yield. The VSTHRD011 analyzer catches this.
+
+## See also
+
+- [vs-error-handling](../vs-error-handling/SKILL.md) — catching `OperationCanceledException` and logging exceptions in async code paths
+- [vs-background-tasks-progress](../vs-background-tasks-progress/SKILL.md) — showing progress UI during long async operations
+- [vs-commands](../vs-commands/SKILL.md) — commands are the most common entry point for async extension code
+- [vs-tool-window](../vs-tool-window/SKILL.md) — async initialization patterns for tool window content
+- [vs-solution-events](../vs-solution-events/SKILL.md) — solution load/unload events that require async handling
 
 ## References
 

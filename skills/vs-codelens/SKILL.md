@@ -7,6 +7,14 @@ description: Add custom CodeLens indicators that display inline information abov
 
 CodeLens indicators display inline information above code elements (classes, methods, properties) in the editor — references, tests, git history, etc. Extensions can add custom indicators that show any data and respond to clicks.
 
+CodeLens is one of the most visible integration points in VS — indicators appear directly in the code without requiring the developer to open a separate window. This makes them ideal for surfacing contextual metadata (ownership, test status, change frequency) at the point of relevance. The architecture is unique: the data provider runs **out-of-process** in a separate CodeLens service, while click handling and custom UI rendering run **in-process**. This split improves editor performance but requires a multi-project solution structure that trips up many first-time authors.
+
+**When to use CodeLens vs. alternatives:**
+- Inline metadata above code elements (methods, classes) → **CodeLens** (this skill)
+- Hover tooltips on arbitrary text spans → Quick Info (see [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md))
+- Inline visual decorations (highlights, icons, overlays) → adornments (see [vs-editor-adornment](../vs-editor-adornment/SKILL.md))
+- Actionable suggestions (lightbulb) → suggested actions (see [vs-editor-suggested-actions](../vs-editor-suggested-actions/SKILL.md))
+
 ## Architecture overview
 
 CodeLens runs in a **separate out-of-process service** (not inside `devenv.exe`). This means a CodeLens extension has two parts:
@@ -565,6 +573,13 @@ The OOP CodeLens provider communicates with devenv.exe via **StreamJsonRpc**. Ve
 - The shared assembly must be referenced by both OOP and VSIX projects
 
 ---
+
+## See also
+
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — visual decorations on the editor surface
+- [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md) — hover tooltips for contextual information
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers that CodeLens providers may depend on for span identification
+- [vs-commands](../vs-commands/SKILL.md) — CodeLens navigation clicks are routed as VS commands
 
 ## Related documentation
 

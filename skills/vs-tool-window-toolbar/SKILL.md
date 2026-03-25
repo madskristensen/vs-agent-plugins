@@ -9,6 +9,15 @@ A tool window toolbar is a horizontal strip of command buttons docked at the top
 
 > **Critical rule:** The toolbar **must** be defined declaratively — in a `.vsct` file (VSSDK / Community Toolkit) or via `ToolbarConfiguration` (VisualStudio.Extensibility). **Never** add a WPF `<ToolBar>` or `<ToolBarTray>` element to the UserControl XAML loaded in the tool window. A WPF toolbar will not participate in the VS command system — it won't support keyboard shortcuts, key bindings, command routing, theming, or the standard toolbar overflow/chevron behavior that the native VS toolbar chrome provides.
 
+Tool window toolbars provide primary actions that are always visible without opening a context menu. They integrate with the VS command table (`.vsct` or `ToolbarConfiguration`), meaning buttons automatically get keyboard shortcuts, localization, theming, and accessibility. Using the VS-native toolbar instead of a WPF toolbar also ensures consistent visual behavior (overflow chevron, high DPI, theme changes).
+
+**When to use this vs. alternatives:**
+- Persistent action buttons at the top of a tool window → **Tool window toolbar** (this skill)
+- Search functionality in a tool window → [vs-tool-window-search](../vs-tool-window-search/SKILL.md)
+- Creating the tool window itself → [vs-tool-window](../vs-tool-window/SKILL.md)
+- IDE-level menu/toolbar commands (not in a tool window) → [vs-commands](../vs-commands/SKILL.md)
+- Context menu on right-click within a tool window → [vs-context-menu](../vs-context-menu/SKILL.md)
+
 ---
 
 ## 1. VisualStudio.Extensibility (out-of-process, recommended)
@@ -564,6 +573,21 @@ Always define the toolbar declaratively via `.vsct` or `ToolbarConfiguration`.
 - Use `<CommandFlag>DefaultDocked</CommandFlag>` on the toolbar `<Menu>` element.
 - Use `<CommandFlag>IconIsMoniker</CommandFlag>` with `guid="ImageCatalogGuid"` on buttons to reference KnownMonikers icons.
 - Set `ToolBarLocation` on the `ToolWindowPane` to control which edge the toolbar docks to (default is top).
+
+## Troubleshooting
+
+- **Toolbar doesn't appear in tool window:** For VSSDK/Toolkit, verify `ToolWindowPane.ToolBar` is set to the correct `CommandID` matching the toolbar `<Menu>` GUID and ID in `.vsct`. For Extensibility, ensure `ToolWindowConfiguration.Toolbar` references your `ToolbarConfiguration`.
+- **Buttons appear but clicks do nothing:** The button's command handler isn't registered. For VSSDK, verify `OleMenuCommandService.AddCommand` is called. For Extensibility, ensure command classes have `[VisualStudioContribution]`.
+- **Toolbar buttons are grayed out:** The command's `QueryStatus`/`BeforeQueryStatus` is returning disabled. Check visibility rules and `OleMenuCommand.Enabled` property.
+- **Icons don't appear on buttons:** For `.vsct`, ensure `<CommandFlag>IconIsMoniker</CommandFlag>` is set and the `guid` is `ImageCatalogGuid`. For Extensibility, verify the `IconName` property references a valid `KnownMonikers` value.
+- **Toolbar appears in the wrong tool window:** The `ToolBar` property is set on the wrong `ToolWindowPane`. Each pane has its own `ToolBar` property — set it in the correct pane's constructor.
+
+## See also
+
+- [vs-tool-window](../vs-tool-window/SKILL.md) — creating tool windows that host toolbars
+- [vs-tool-window-search](../vs-tool-window-search/SKILL.md) — adding search alongside the toolbar
+- [vs-commands](../vs-commands/SKILL.md) — command registration (toolbar buttons are commands)
+- [vs-context-menu](../vs-context-menu/SKILL.md) — right-click menus as an alternative to toolbar actions
 
 ## References
 

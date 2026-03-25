@@ -7,6 +7,15 @@ description: Push custom errors, warnings, and messages into the Visual Studio E
 
 The Error List is one of Visual Studio's most prominent tool windows. Extensions can push custom errors, warnings, and messages into it so users can click through to the relevant source location.
 
+The Error List is where developers expect to find build errors, analyzer warnings, and any problem that needs attention. Extensions that surface their own diagnostics here (rather than in a custom tool window or output pane) benefit from the user's existing workflow — filtering by severity, clicking to navigate, and seeing all problems in one place. The modern `ITableDataSource` API supports efficient snapshot-based updates, custom columns, and proper source filtering.
+
+**When to use the Error List vs. alternatives:**
+- Errors, warnings, or messages the user should click to navigate to source → **Error List** (this skill)
+- Detailed log output (build log, analysis trace) → Output Window (see [vs-error-handling](../vs-error-handling/SKILL.md))
+- Non-blocking notification (info, update available) → info bar (see [vs-info-bar](../vs-info-bar/SKILL.md))
+- Diagnostic squiggles inline in the editor → tagger (see [vs-editor-tagger](../vs-editor-tagger/SKILL.md))
+- Light bulb quick fix for a diagnostic → [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md)
+
 ---
 
 ## 1. VSIX Community Toolkit (in-process)
@@ -285,6 +294,21 @@ If you need Error List support from an out-of-process extension, your options ar
 > **Do NOT** attempt to write to the Error List from a pure out-of-process VisualStudio.Extensibility extension. The Error List is an in-process feature. If you need Error List integration from an out-of-process extension, use the **Output Window** as an alternative, or create an **in-process hybrid** component that hosts the `TableDataSource`.
 
 > **Do NOT** create a new `TableDataSource` for every error batch. Create a single `TableDataSource` instance in your extension, and update it by publishing new `ITableEntriesSnapshot` instances. Creating multiple sources clutters the Error List's source filter dropdown.
+
+## Troubleshooting
+
+- **Errors don't appear in the Error List:** Ensure you're calling `AddErrors` (Toolkit) or `ITableDataSink.AddSnapshot` (VSSDK) with a non-empty collection. Also verify the Error List filter isn't hiding your entries (check the source filter dropdown).
+- **Errors persist after they should be cleared:** Call `CleanAllErrors` (Toolkit) or publish an empty snapshot (VSSDK) when your source has no more diagnostics.
+- **Click-to-navigate doesn't work:** Ensure the file path and line/column values are correct. For Toolkit, set `FileName`, `Line`, and `Column` on `ErrorListItem`. For VSSDK, populate the `DocumentName`, `Line`, and `Column` snapshot columns.
+- **"Source" column shows wrong name:** The source name comes from the `TableDataSource` display name (Toolkit) or `ITableDataSource.DisplayName` (VSSDK). Set it to your extension's name.
+- **Old `ErrorListProvider` pattern doesn't work in newer VS:** `ErrorListProvider` / `ErrorTask` are deprecated. Migrate to `TableDataSource` (Toolkit) or `ITableDataSource` (VSSDK).
+
+## See also
+
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — inline squiggles that complement Error List entries
+- [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md) — code fixes for Error List diagnostics
+- [vs-error-handling](../vs-error-handling/SKILL.md) — logging and Output Window for non-diagnostic errors
+- [vs-build-events](../vs-build-events/SKILL.md) — surfacing build errors in the Error List
 
 - [VSIX Cookbook — Error List integration](https://www.vsixcookbook.com/recipes/error-list.html)
 - [ErrorListProvider class reference](https://learn.microsoft.com/dotnet/api/microsoft.visualstudio.shell.errorlistprovider)

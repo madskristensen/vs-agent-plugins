@@ -9,6 +9,14 @@ Any custom WPF UI (tool windows, dialogs, user controls) must respect the active
 
 **Rule #1:** Never hard-code hex or RGB colors. Always use theme-aware resource keys or the toolkit's auto-theming.
 
+Proper theming is a requirement for VS Marketplace quality — extensions with hard-coded colors look broken in any theme other than the one the developer tested with. VS provides multiple levels of theming support: the Toolkit's `UseVsTheme` for zero-effort auto-theming, `EnvironmentColors` resource keys for fine-grained control, and the `VSColorTheme.ThemeChanged` event for runtime updates.
+
+**When to use this vs. alternatives:**
+- Make WPF UI automatically match the current VS theme (Light/Dark/HC) → **Theming** (this skill)
+- Register custom color items users can customize in Fonts & Colors → [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md)
+- Create a tool window that needs to be themed → [vs-tool-window](../vs-tool-window/SKILL.md) (uses theming from this skill)
+- Syntax highlighting colors → [vs-editor-classifier](../vs-editor-classifier/SKILL.md) (classification colors auto-integrate with themes)
+
 ---
 
 ## 1. VSIX Community Toolkit (in-process) — `Themes.UseVsTheme`
@@ -323,6 +331,31 @@ In the Remote UI XAML, standard WPF controls receive VS theme styling automatica
 | Environment font | `VsFonts.EnvironmentFontFamilyKey` / `EnvironmentFontSizeKey` | `ResourceKey` |
 
 ---
+
+## Troubleshooting
+
+- **UI looks correct in Light but unreadable in Dark theme:** You're using hard-coded colors somewhere. Search for `#`, `Color.FromRgb`, or `Brushes.` in your XAML/code and replace with `EnvironmentColors` or `VsBrushes` resource keys.
+- **`Themes.UseVsTheme` doesn't affect custom controls:** `UseVsTheme` only styles standard WPF controls (Button, TextBox, etc.). Custom controls need explicit `EnvironmentColors` bindings.
+- **Theme changes don't update UI until restart:** You're reading colors once at construction time. Use `{DynamicResource}` bindings (not `{StaticResource}`) so WPF re-evaluates when the theme changes.
+- **High Contrast mode looks wrong:** Don't use VS theme colors for High Contrast — use `SystemColors` resource keys. VS automatically falls back to system colors in High Contrast mode for `EnvironmentColors`.
+- **Fonts look different from the rest of VS:** Use `VsFonts.EnvironmentFontFamilyKey` and `VsFonts.EnvironmentFontSizeKey` as `DynamicResource` bindings.
+
+## What NOT to do
+
+> **Do NOT** hard-code hex colors (`#FF0000`), named brushes (`Brushes.White`), or `System.Drawing.Color` in WPF XAML or code-behind. Always use `EnvironmentColors`, `VsBrushes`, or `Themes.UseVsTheme`.
+
+> **Do NOT** use `{StaticResource}` for theme colors. Use `{DynamicResource}` so the UI updates when the user switches themes without restarting VS.
+
+> **Do NOT** use `System.Windows.MessageBox` for dialogs — it doesn't parent to VS and won't be themed. Use `VS.MessageBox` (Toolkit) or `VsShellUtilities.ShowMessageBox` (VSSDK).
+
+> **Do NOT** test only in Light theme. Always verify your UI in Dark and High Contrast before publishing.
+
+## See also
+
+- [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md) — registering user-customizable color items
+- [vs-tool-window](../vs-tool-window/SKILL.md) — creating tool windows that use theming
+- [vs-editor-classifier](../vs-editor-classifier/SKILL.md) — classification colors integrated with the theme system
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — adornments that need theme-aware colors
 
 ## Additional resources
 

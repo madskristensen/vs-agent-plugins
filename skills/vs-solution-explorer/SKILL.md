@@ -7,6 +7,15 @@ description: Programmatically interact with Solution Explorer in Visual Studio e
 
 Solution Explorer is the primary navigation tool window in Visual Studio. Extensions can programmatically select items, expand/collapse nodes, apply filters, and start label editing.
 
+Programmatic access to Solution Explorer is essential for extensions that need to navigate users to specific files, synchronize selection with external state, or build custom workflows around the project tree. The VisualStudio.Extensibility approach uses a LINQ-like Project Query API for structured data access, while the in-process approaches provide direct window manipulation.
+
+**When to use this vs. alternatives:**
+- Query projects/files, select items, expand/collapse nodes → **Solution Explorer integration** (this skill)
+- Add custom virtual nodes under existing hierarchy items → [vs-solution-explorer-nodes](../vs-solution-explorer-nodes/SKILL.md)
+- React to solution/project open/close events → [vs-solution-events](../vs-solution-events/SKILL.md)
+- Add context menu items to Solution Explorer nodes → [vs-context-menu](../vs-context-menu/SKILL.md)
+- Open/read/write files discovered via Solution Explorer → [vs-file-document-ops](../vs-file-document-ops/SKILL.md)
+
 ---
 
 ## 1. VSIX Community Toolkit (in-process)
@@ -303,6 +312,28 @@ var unsubscriber = await singleSolution
 > **Note:** The Project Query API provides data access and mutation over the solution tree but does not directly control the Solution Explorer UI (selection, expansion, scrolling). For full UI control, an in-process component is still needed.
 
 ---
+
+## Troubleshooting
+
+- **`GetSolutionExplorerWindowAsync()` returns null:** Solution Explorer hasn't been opened yet. Call `VS.Windows.ShowToolWindowAsync<SolutionExplorerWindow>()` first, or access the window after the user has opened it.
+- **Selection returns empty even though items are selected:** For VSSDK, you're using `GetSelection` before switching to the UI thread. Call `ThreadHelper.ThrowIfNotOnUIThread()` and ensure you're on the main thread.
+- **Expand/collapse doesn't work:** The node GUID or item ID is wrong. Use `IVsUIHierarchyWindow.ExpandItem` with the correct `EXPANDFLAGS` value.
+- **Project Query returns no results:** Ensure the solution is fully loaded. Use activation constraints or wait for `OnAfterBackgroundSolutionLoadComplete` before querying.
+
+## What NOT to do
+
+> **Do NOT** use `DTE.Solution` or `DTE.SelectedItems` for solution exploration in new extensions. The DTE automation model is deprecated, requires the UI thread, and has limited functionality compared to the Project Query API or Toolkit wrappers.
+
+> **Do NOT** manipulate Solution Explorer UI (expand, collapse, select) from a background thread. All `IVsUIHierarchyWindow` operations require the main thread.
+
+> **Do NOT** cache hierarchy item IDs across sessions. `VSITEMID` values are not stable and may change when the solution reloads.
+
+## See also
+
+- [vs-solution-explorer-nodes](../vs-solution-explorer-nodes/SKILL.md) — adding custom virtual nodes to the tree
+- [vs-solution-events](../vs-solution-events/SKILL.md) — detecting when solutions load to trigger exploration
+- [vs-context-menu](../vs-context-menu/SKILL.md) — adding right-click actions to Solution Explorer items
+- [vs-file-document-ops](../vs-file-document-ops/SKILL.md) — opening files discovered through Solution Explorer
 
 ## Additional resources
 

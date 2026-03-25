@@ -12,6 +12,15 @@ Quick Info provides hover tooltips when the user mouses over text in the editor.
 - Add extra tooltip content to an existing language
 - Show color previews, image previews, or rich content on hover
 
+Hover tooltips are one of the most natural information-discovery gestures — developers instinctively mouse over unfamiliar symbols. Custom Quick Info providers let your extension deliver contextual information exactly when the developer needs it, without any explicit action. The modern async API runs `GetQuickInfoItemAsync` on a background thread, making it safe for network calls or file I/O. The legacy synchronous API freezes the editor on hover and is deprecated.
+
+**When to use Quick Info vs. alternatives:**
+- Hover tooltip with information about a symbol or text span → **Quick Info** (this skill)
+- Auto-complete suggestions → completion (see [vs-editor-completion](../vs-editor-completion/SKILL.md))
+- Actionable suggestions (lightbulb) → suggested actions (see [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md))
+- Inline metadata above code elements → CodeLens (see [vs-codelens](../vs-codelens/SKILL.md))
+- Full language support (hover + completion + diagnostics) → LSP (see [vs-language-server](../vs-language-server/SKILL.md))
+
 ---
 
 ## MEF Asset Type Requirement
@@ -219,6 +228,14 @@ var horizontal = new ContainerElement(
 - Use the modern async API (`IAsyncQuickInfoSourceProvider`), not the legacy `IQuickInfoSourceProvider`.
 - Return `null` when your source has nothing to contribute.
 
+## Troubleshooting
+
+- **Tooltip doesn't appear on hover:** Check the MEF asset type in `.vsixmanifest`. Verify `[ContentType]` matches the file type. Ensure `GetQuickInfoItemAsync` returns a non-null `QuickInfoItem` for the hovered span.
+- **Tooltip appears but is empty:** You're returning a `QuickInfoItem` with empty content. Return `null` instead when you have nothing to contribute.
+- **Hover is slow / editor freezes on mouse-over:** You're using the legacy synchronous `IQuickInfoSource` or doing expensive work in `GetQuickInfoItemAsync`. Pre-compute and cache on a background thread.
+- **Your tooltip content doesn't respect Dark/High Contrast theme:** You're hard-coding colors in the tooltip. Use `ClassifiedTextElement` and proper classification types.
+- **Tooltip shows for wrong file types:** Missing `[ContentType]` attribute on the provider.
+
 ## What NOT to do
 
 > **Do NOT** use the legacy `IQuickInfoSourceProvider` / `IQuickInfoSource` API. It is **deprecated** since VS 2017 (15.6). Use `IAsyncQuickInfoSourceProvider` / `IAsyncQuickInfoSource` instead. The legacy API runs synchronously on the UI thread — any parsing, file reads, or network calls in `AugmentQuickInfoSession` will freeze the editor on hover. Old walkthroughs on Microsoft Learn and blog posts still show the legacy API; do not follow them.
@@ -230,6 +247,14 @@ var horizontal = new ContainerElement(
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, tooltips simply don't appear.
 
 > **Do NOT** hard-code colors or font sizes in tooltip content. Use `ClassifiedTextElement` and `ContainerElement` with proper classification types so your tooltips respect the user's theme (Dark, Light, High Contrast).
+
+## See also
+
+- [vs-editor-completion](../vs-editor-completion/SKILL.md) — IntelliSense completion that complements hover info
+- [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md) — actionable suggestions alongside informational tooltips
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers that produce the spans Quick Info can annotate
+- [vs-language-server](../vs-language-server/SKILL.md) — LSP provides hover as part of a full language service
+- [vs-theming](../vs-theming/SKILL.md) — theme-aware tooltip content
 
 ## References
 

@@ -11,6 +11,14 @@ Completion sources provide IntelliSense auto-complete suggestions. Common scenar
 - Inject additional completion items into an existing language (e.g., custom snippets in C#)
 - Provide context-aware completions based on project state or external data
 
+IntelliSense is one of the most visible and frequently used editor features — developers trigger it dozens of times per session. A poorly performing completion source (slow, blocking the UI thread) is immediately noticeable. The modern async completion API (`IAsyncCompletionSourceProvider`) runs `GetCompletionContextAsync` on a background thread, making it safe for I/O and network calls. The legacy synchronous API runs on the UI thread and should not be used for new extensions.
+
+**When to use completion vs. alternatives:**
+- Auto-complete suggestions in the editor → **completion** (this skill)
+- Hover tooltips on symbols → Quick Info (see [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md))
+- Code fix/refactoring suggestions (lightbulb) → suggested actions (see [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md))
+- Full language support (completion + diagnostics + hover + navigation) → Language Server Protocol (see [vs-language-server](../vs-language-server/SKILL.md))
+
 ---
 
 ## MEF Asset Type Requirement
@@ -298,6 +306,14 @@ internal sealed class CompletionTriggerHandler : ICommandHandler<TypeCharCommand
 - Use the async API for better performance and background-thread safety.
 - Scope your provider with `[ContentType]` to avoid interfering with other languages.
 
+## Troubleshooting
+
+- **Completion items don't appear at all:** Check the MEF asset type in `.vsixmanifest`. Also verify `[ContentType]` matches the file type. For async completion, ensure `InitializeCompletion` returns a valid `CompletionStartData` (not `DoesNotParticipateInCompletion`).
+- **Completion appears for the wrong file types:** Missing or incorrect `[ContentType]` attribute on the provider. Without it, completion activates for all file types.
+- **Items appear but the wrong ones are selected / filtered:** Check your `ApplicableToSpan` calculation. The span determines which text VS uses to filter the completion list as the user types.
+- **Completion is slow / editor freezes on invoke:** You're using the legacy synchronous `ICompletionSource` or doing I/O in `GetCompletionContextAsync`. Move heavy work to background caching or use the async API.
+- **Items from your source and another source are mixed unexpectedly:** Multiple completion sources for the same content type are merged by VS. Use `CompletionItem.SortText` and `FilterText` to control ordering and filtering.
+
 ## What NOT to do
 
 > **Do NOT** use the legacy synchronous `ICompletionSourceProvider` / `ICompletionSource` API for new extensions targeting VS 2019+. Use the modern async `IAsyncCompletionSourceProvider` / `IAsyncCompletionSource` instead. The legacy API runs `AugmentCompletionSession` synchronously on the UI thread — any I/O, parsing, or network call will freeze the editor. Many old tutorials and walkthroughs still show the legacy API; do not follow them for new code.
@@ -309,6 +325,13 @@ internal sealed class CompletionTriggerHandler : ICommandHandler<TypeCharCommand
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, completion simply doesn't appear. This is the #1 cause of "my completion provider doesn't load."
 
 > **Do NOT** omit the `[ContentType]` attribute on your provider. Without it, your completion source may activate for every file type in VS, causing unexpected items to appear in languages you didn't intend to support.
+
+## See also
+
+- [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md) — hover tooltips that complement completion
+- [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md) — code actions and quick fixes
+- [vs-language-server](../vs-language-server/SKILL.md) — LSP provides completion as part of a full language service
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers can provide context data that completion sources use
 
 ## References
 

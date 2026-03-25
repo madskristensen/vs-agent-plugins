@@ -12,6 +12,15 @@ Command interception lets you run custom logic **before**, **after**, or **inste
 - Replace the default formatting behavior with a custom formatter
 - Show a confirmation prompt before a destructive action
 
+Interception is powerful but invasive — you're inserting your code into Visual Studio's own command pipeline. A slow or buggy interceptor blocks every invocation of that command for the entire IDE. In many cases, listening to events (e.g., document-saved events instead of intercepting the Save command) is less invasive and achieves the same result. Use interception only when you need to run logic *before* the command executes, or when you need to *cancel* or *replace* the default behavior entirely.
+
+**When to use this vs. alternatives:**
+- Run logic before/after a built-in command or cancel it → **this skill**
+- React to file save/close without intercepting the command → [vs-file-document-ops](../vs-file-document-ops/SKILL.md)
+- React to build start/completion → [vs-build-events](../vs-build-events/SKILL.md)
+- Add a new command (not intercept an existing one) → [vs-commands](../vs-commands/SKILL.md)
+- Control when commands are visible or enabled → [vs-command-visibility](../vs-command-visibility/SKILL.md)
+
 ---
 
 ## 1. VisualStudio.Extensibility (out-of-process, recommended)
@@ -308,6 +317,32 @@ commandEvents.AfterExecute += (string guid, int id, object customIn, object cust
 - Keep before-handlers fast — they run on the UI thread.
 - Always handle the case where the user cancels (return appropriate results).
 - For file save scenarios, consider whether events (`RunningDocumentTable`, `IDocumentEventsListener`) are more appropriate than command interception.
+
+## Troubleshooting
+
+- **Interceptor never fires:** For the Toolkit, verify `VS.Commands.InterceptAsync` is called in `InitializeAsync` with the correct command GUID and ID. For VSSDK, ensure you called `RegisterPriorityCommandTarget` and that your `IOleCommandTarget.QueryStatus` returns `OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED`.
+- **Interceptor fires but the original command still runs:** For the Toolkit, return `CommandProgression.Stop` from your handler to prevent the original command from executing. For VSSDK, return `S_OK` from `Exec` without calling the next command target.
+- **IDE becomes sluggish after adding interceptor:** Your interceptor is doing too much work on the UI thread. Keep before-handlers fast and offload work to a background thread.
+- **After-execution logic doesn't see updated state:** For VSSDK `CommandEvents.AfterExecute`, the event fires synchronously after the command returns. If the command's effects are applied asynchronously, your handler may run before they're visible. Use `await Task.Yield()` or a small delay to let the effects settle.
+- **`UnregisterPriorityCommandTarget` throws:** You're calling it from a background thread or after the VS shell has already been disposed. Wrap in `ThreadHelper.ThrowIfNotOnUIThread()` and check disposal state.
+
+## What NOT to do
+
+> **Do NOT** intercept commands when event listeners would suffice. Intercepting the Save command to react after save is more fragile than listening to `RunningDocumentTable` or `IDocumentEventsListener` document-saved events. Interception should be reserved for canceling or replacing command behavior.
+
+> **Do NOT** do slow work in a before-execution interceptor. It runs synchronously on the UI thread for every invocation of that command. If your validation takes more than a few milliseconds, move it to a background thread and show results asynchronously.
+
+> **Do NOT** forget to unregister priority command targets in `Dispose`. Leaked registrations cause callbacks into disposed objects, leading to crashes.
+
+> **Do NOT** intercept commands in the VisualStudio.Extensibility model — it's not supported. Use event listeners (e.g., `IDocumentEventsListener`) as the out-of-process alternative.
+
+## See also
+
+- [vs-commands](../vs-commands/SKILL.md) — creating new commands rather than intercepting existing ones
+- [vs-command-visibility](../vs-command-visibility/SKILL.md) — controlling when commands appear
+- [vs-build-events](../vs-build-events/SKILL.md) — event-based alternative to intercepting Build commands
+- [vs-file-document-ops](../vs-file-document-ops/SKILL.md) — event-based alternative to intercepting Save commands
+- [vs-async-threading](../vs-async-threading/SKILL.md) — keeping interceptors fast with proper async patterns
 
 ## References
 

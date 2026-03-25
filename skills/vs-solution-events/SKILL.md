@@ -7,6 +7,15 @@ description: React to solution and project lifecycle events in Visual Studio ext
 
 Extensions frequently need to respond when the user opens, closes, or modifies a solution — for instance, to scan files, load caches, or update UI state. Visual Studio provides multiple event APIs depending on your extensibility model.
 
+Solution events are foundational for extensions that need to initialize state when a workspace becomes available or clean up when it closes. Getting the timing wrong (e.g., enumerating projects before background load completes) leads to missing data and intermittent failures. The API landscape is broad — choosing the right one avoids unnecessary complexity.
+
+**When to use this vs. alternatives:**
+- Detect solution open/close/load to initialize or tear down extension state → **Solution events** (this skill)
+- Query projects and files after the solution is loaded → [vs-solution-explorer](../vs-solution-explorer/SKILL.md)
+- React to individual file save/open/close → [vs-file-document-ops](../vs-file-document-ops/SKILL.md)
+- React to build start/end → [vs-build-events](../vs-build-events/SKILL.md)
+- Support folder-open (no solution) scenarios → [vs-open-folder](../vs-open-folder/SKILL.md)
+
 ## Decision guide
 
 | Approach | API | Thread safety | Scope |
@@ -481,6 +490,22 @@ private void OnAfterOpenProject(IVsHierarchy hierarchy)
 > **Do NOT** implement `IVsSolutionEvents` directly when you only need basic open/close/rename events. Use `VS.Events.SolutionEvents` (Toolkit) or `Microsoft.VisualStudio.Shell.Events.SolutionEvents` (VSSDK static events) — they're simpler and less error-prone. Implement `IVsSolutionEvents` only when you need to **cancel** operations via `OnQueryCloseSolution` / `OnQueryCloseProject`.
 
 > **Do NOT** use `EnvDTE.Events.SolutionEvents` from the legacy DTE automation model. It requires storing a strong field reference to the event object (or COM GC silently stops delivering events), and the DTE model is deprecated for new extensions.
+
+## Troubleshooting
+
+- **Event handler never fires:** For Toolkit, verify you're subscribing in `InitializeAsync` *after* `await JoinableTaskFactory.SwitchToMainThreadAsync()`. For VSSDK, confirm `AdviseSolutionEvents` returned a non-zero cookie.
+- **Projects appear empty when accessed in `OnAfterOpenSolution`:** Background-loaded projects aren't ready yet. Use `OnAfterBackgroundSolutionLoadComplete` to ensure all projects are fully loaded.
+- **Events fire multiple times per solution open:** You're subscribing in a code path that runs more than once (e.g., command execution). Move subscription to `InitializeAsync` or a one-time initialization path.
+- **Memory leak after repeated solution open/close cycles:** Ensure you call `UnadviseSolutionEvents` in `Dispose()` (VSSDK) or unsubscribe from static events (Toolkit/VSSDK Shell.Events).
+- **Open Folder events don't fire:** Solution events don't fire for Open Folder mode. Use `IVsSolutionEvents7.OnAfterOpenFolder` or the Open Folder UI context.
+
+## See also
+
+- [vs-solution-explorer](../vs-solution-explorer/SKILL.md) — querying projects and items after solution load
+- [vs-build-events](../vs-build-events/SKILL.md) — reacting to build lifecycle events
+- [vs-file-document-ops](../vs-file-document-ops/SKILL.md) — file-level open/save/close events
+- [vs-open-folder](../vs-open-folder/SKILL.md) — workspace events when no solution is present
+- [vs-background-tasks-progress](../vs-background-tasks-progress/SKILL.md) — offloading heavy work triggered by solution events
 
 ## References
 

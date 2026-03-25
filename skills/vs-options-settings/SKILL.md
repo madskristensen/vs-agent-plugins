@@ -7,6 +7,14 @@ description: Add custom settings and options pages to Visual Studio extensions. 
 
 Most extensions need user-configurable settings exposed in the **Tools > Options** dialog. Visual Studio provides three different APIs depending on your extensibility model.
 
+Without a proper settings page, extensions either hard-code behavior (frustrating users who need different defaults) or invent custom storage that doesn't integrate with VS's settings import/export, roaming, or reset. The Tools > Options page is the standard location users check for extension settings, and VS handles persistence, threading, and UI generation for you.
+
+**When to use this vs. alternatives:**
+- User-configurable settings with auto-generated Tools > Options page → **Options/Settings** (this skill)
+- Custom font and color items with per-theme defaults → [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md)
+- Key bindings and command customization → [vs-commands](../vs-commands/SKILL.md)
+- Workspace-level settings for Open Folder mode → [vs-open-folder](../vs-open-folder/SKILL.md) (`.vs/VSWorkspaceSettings.json`)
+
 ## Decision guide
 
 | Approach | Settings storage | UI | Thread-safe | Lazy load |
@@ -509,6 +517,30 @@ int maxResults = userSettings.GetInt32("MyExtension", "MaxResults", defaultValue
 - Always provide `[DefaultValue]` attributes (Toolkit/VSSDK) or `defaultValue` parameters (Extensibility) so settings have sensible defaults before the user changes them.
 - Never access settings on the UI thread synchronously when an async alternative exists.
 - Use `ProvideProfile` (Toolkit/VSSDK) to enable roaming and import/export.
+
+## Troubleshooting
+
+- **Options page doesn't appear in Tools > Options:** Verify `[ProvideOptionPage]` is on the package class (Toolkit/VSSDK) with the correct `typeof(OptionsProvider.XxxOptions)`. For Extensibility, ensure the `[VisualStudioContribution]` attribute is present on your settings class.
+- **Settings reset on every VS restart:** You're not calling `Save()` / `SaveAsync()` after changing values. For VSSDK `DialogPage`, persistence is automatic but only if you don't override `SaveSettingsToStorage` incorrectly.
+- **`BaseOptionModel<T>` properties don't persist:** Ensure properties have `public` getters and setters. Private setters won't be serialized.
+- **Custom WPF options page shows blank:** You're using `DialogPage` instead of `UIElementDialogPage`. Override the `Child` property (not `Window`) and return your WPF `UserControl`.
+- **Settings changes don't take effect until VS restart:** Subscribe to `General.Saved` (Toolkit) or implement `IProfileManager` (VSSDK) to react immediately when the user clicks OK.
+
+## What NOT to do
+
+> **Do NOT** store settings in custom files (JSON, XML) in the extension directory. Use the VS settings store — it handles roaming, import/export, and reset automatically.
+
+> **Do NOT** access `DialogPage` properties from a background thread without `JoinableTaskFactory.SwitchToMainThreadAsync()`. `DialogPage` properties are backed by the VS registry which may require the UI thread.
+
+> **Do NOT** use `Registry.CurrentUser` directly for settings. Use `WritableSettingsStore` (VSSDK) or `BaseOptionModel<T>` (Toolkit) — they write to the correct VS hive and support experimental instances.
+
+> **Do NOT** forget `[DefaultValue]` attributes. Without them, the "Reset" button in Tools > Options won't restore sensible defaults.
+
+## See also
+
+- [vs-fonts-and-colors](../vs-fonts-and-colors/SKILL.md) — user-customizable color settings in Fonts & Colors
+- [vs-open-folder](../vs-open-folder/SKILL.md) — workspace-scoped settings for Open Folder mode
+- [vs-commands](../vs-commands/SKILL.md) — command registration (settings often gate command behavior)
 
 ## References
 

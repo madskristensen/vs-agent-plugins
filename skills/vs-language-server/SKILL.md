@@ -9,6 +9,15 @@ The Language Server Protocol (LSP) enables extensions to provide language featur
 
 LSP is intended for adding support for **new languages** not already built into Visual Studio. It is _not_ designed to extend existing built-in languages like C# or C++.
 
+LSP is the standard way to add full language support (completion, hover, diagnostics, navigation, formatting) for a language that VS doesn't natively support. The key benefit is architecture: your language server runs in a separate process and communicates over a well-defined protocol, meaning you can reuse the same server across VS Code, Sublime Text, and other editors. VS provides two integration models: in-process via MEF (`ILanguageClient`) and out-of-process via `LanguageServerProvider` (VisualStudio.Extensibility).
+
+**When to use LSP vs. alternatives:**
+- Full language support for a new language (completion, diagnostics, navigation, formatting) → **LSP** (this skill)
+- Simple syntax coloring without full language support → TextMate grammar (see [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md))
+- Extending C#/VB with analyzers and code fixes → Roslyn `DiagnosticAnalyzer` / `CodeFixProvider`
+- Adding completion to an existing language without a full server → [vs-editor-completion](../vs-editor-completion/SKILL.md)
+- Inline metadata above code elements → CodeLens (see [vs-codelens](../vs-codelens/SKILL.md))
+
 ## File organization
 
 ```
@@ -426,6 +435,23 @@ LSP does not define syntax colorization. To provide highlighting, bundle a TextM
 - VSSDK sample: [VSSDK-Extensibility-Samples/LanguageServerProtocol](https://github.com/Microsoft/VSSDK-Extensibility-Samples/tree/master/LanguageServerProtocol)
 
 ---
+
+## Troubleshooting
+
+- **Language server doesn't activate:** For VSSDK, verify the `MefComponent` asset type is in `.vsixmanifest`. For Extensibility, confirm your `LanguageServerProvider` has the correct `[VisualStudioContribution]` attribute and `DocumentFilter` matches your content type.
+- **`MissingMethodException` or `TypeLoadException` at runtime:** You've updated `Newtonsoft.Json` or `StreamJsonRpc` beyond the version shipped with your target VS. Pin to the VS-bundled version and use binding redirects if your server needs a different version.
+- **Diagnostics not appearing in Error List:** Ensure your server publishes `textDocument/publishDiagnostics` notifications. Verify the `ContentType` on your `ILanguageClient` matches the file type, and that the document URI format matches what VS expects (file:///C:/...).
+- **Completion items show but selecting one inserts wrong text:** Check `completionItem/resolve` — VS calls resolve lazily. If your server doesn't implement it, VS uses the `label` field as the insert text.
+- **Server starts but no features work:** Check the LSP `initialize` response capabilities. VS only activates features your server declares in its capabilities object.
+- **Syntax highlighting missing even though LSP is working:** LSP doesn't define syntax colorization. Bundle a TextMate grammar (see [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md)).
+
+## See also
+
+- [vs-textmate-grammar](../vs-textmate-grammar/SKILL.md) — syntax highlighting for LSP languages (LSP doesn't cover colorization)
+- [vs-editor-completion](../vs-editor-completion/SKILL.md) — MEF-based completion when a full language server isn't needed
+- [vs-codelens](../vs-codelens/SKILL.md) — CodeLens providers (LSP codeLens not yet supported in VS)
+- [vs-error-list](../vs-error-list/SKILL.md) — how diagnostics from LSP appear in the Error List
+- [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md) — hover/QuickInfo without LSP
 
 ## Key links
 

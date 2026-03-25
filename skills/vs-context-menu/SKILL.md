@@ -9,6 +9,14 @@ When you build custom WPF UI inside a Visual Studio extension (for example a tre
 
 Instead, define your context menus in VSCT (the same command table used for toolbars and main menu items), then show them programmatically from your WPF event handlers using `IVsUIShell.ShowContextMenu`.
 
+Native VS context menus are essential for a professional-feeling extension because they participate in the VS command system — keyboard shortcuts display correctly, `BeforeQueryStatus` enables/disables items dynamically, and the menu renders with the correct VS theme (Dark, Light, High Contrast). A WPF `ContextMenu` does none of this and looks visibly foreign to a VS user.
+
+**When to use this vs. alternatives:**
+- Right-click menu on custom WPF UI in a tool window → **this skill**
+- Adding commands to VS’s built-in context menus (Solution Explorer, editor) → [vs-commands](../vs-commands/SKILL.md) with appropriate parent groups
+- Showing/hiding context menu items conditionally → combine with [vs-command-visibility](../vs-command-visibility/SKILL.md)
+- Context menu items that change text or checked state → combine with [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md)
+
 ---
 
 ## VisualStudio.Extensibility (out-of-process) — Not Supported
@@ -497,3 +505,11 @@ In VSCT, add `DynamicVisibility` and `DefaultInvisible` flags so the button star
 > **Do NOT** parent `<Button>` elements directly to a `<Menu>` in `.vsct`. Always create at least one `<Group>` as an intermediary — buttons parented directly to a menu will not appear. Groups also provide automatic separators between logical clusters of commands.
 
 > **Do NOT** forget to match the GUID in `ShowContextMenu` with the `guid` on the `<Menu>` element in your `.vsct` file. A mismatched GUID causes the menu to silently not appear, with no error message.
+
+## See also
+
+- [vs-commands](../vs-commands/SKILL.md) — defining the command buttons that appear in context menus
+- [vs-command-visibility](../vs-command-visibility/SKILL.md) — showing/hiding context menu items conditionally
+- [vs-dynamic-commands](../vs-dynamic-commands/SKILL.md) — changing menu item text or checked state dynamically
+- [vs-tool-window](../vs-tool-window/SKILL.md) — the most common host for custom UI that needs context menus
+- [vs-theming](../vs-theming/SKILL.md) — why WPF ContextMenu doesn't theme correctly in VS

@@ -16,6 +16,14 @@ Visual Studio has a built-in search control that can be added to any tool window
 
 The search infrastructure is driven by the `IVsWindowSearch` interface in `Microsoft.VisualStudio.Shell.Interop`. The `ToolWindowPane` class already implements this interface with a default (disabled) implementation — you override specific members to enable and customize search.
 
+The native search bar gives your tool window a familiar, consistent search experience that matches VS's own tool windows (Error List, Solution Explorer). It handles MRU, keyboard navigation, progress indication, and accessibility automatically. Building a custom WPF TextBox for search misses all of these behaviors.
+
+**When to use this vs. alternatives:**
+- Filter/search content within a tool window → **Tool window search** (this skill)
+- Add a toolbar with command buttons to a tool window → [vs-tool-window-toolbar](../vs-tool-window-toolbar/SKILL.md)
+- Create the tool window itself → [vs-tool-window](../vs-tool-window/SKILL.md)
+- Search across the entire solution (files, symbols) → built-in VS search (not extensible)
+
 ---
 
 ## 1. VisualStudio.Extensibility (out-of-process) — NOT SUPPORTED
@@ -504,6 +512,28 @@ Use `Utilities.SetValue()` inside `ProvideSearchSettings` to configure:
 - `CreateSearch()` and `ClearSearch()` run on the **UI thread**.
 - Always call `base.OnStartSearch()` at the end of your `OnStartSearch` override to report task completion.
 - Set `SearchResults` before calling `base.OnStartSearch()` so the search host can display the count.
+
+## Troubleshooting
+
+- **Search box doesn't appear:** Verify `SearchEnabled` returns `true` on the `ToolWindowPane` class (or the inner `Pane` class if using Toolkit's `BaseToolWindow<T>`). The property must be an override, not a new property.
+- **Search runs but UI doesn't update:** `OnStartSearch()` runs on a background thread. Use `ThreadHelper.Generic.Invoke()` or `Dispatcher.Invoke()` to update WPF controls from within the search task.
+- **Results count shows 0:** Set `SearchResults` property *before* calling `base.OnStartSearch()`. The base method reports the task as complete and reads the count at that point.
+- **Search options/filters don't appear:** Override `SearchOptionsEnum` and/or `SearchFiltersEnum` on the `ToolWindowPane` to return your custom `IVsEnumWindowSearchOptions`/`IVsEnumWindowSearchFilters`.
+- **MRU dropdown doesn't show previous searches:** Ensure `SearchUseMRUProperty` is not explicitly set to `false` in your `SearchSettingsDataSource`. MRU is enabled by default.
+
+## What NOT to do
+
+> **Do NOT** build a custom WPF `TextBox` for search in your tool window. The native `IVsWindowSearch` control handles MRU, keyboard navigation, progress, accessibility, and consistent styling for free.
+
+> **Do NOT** do heavy work synchronously in `CreateSearch()` or `ClearSearch()` — they run on the UI thread and will freeze VS. Offload work to the `VsSearchTask.OnStartSearch()` method which runs on a background thread.
+
+> **Do NOT** forget to call `base.OnStartSearch()` at the end of your override. Without it, the search progress indicator never completes.
+
+## See also
+
+- [vs-tool-window](../vs-tool-window/SKILL.md) — creating the tool window that hosts the search bar
+- [vs-tool-window-toolbar](../vs-tool-window-toolbar/SKILL.md) — adding command toolbars alongside search
+- [vs-commands](../vs-commands/SKILL.md) — search option buttons are backed by VS commands
 
 ## References
 

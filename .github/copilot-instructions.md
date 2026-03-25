@@ -12,10 +12,22 @@ If a particular approach does not apply to a skill's topic, explicitly state tha
 
 ## Skill Structure
 
-- Each skill must include working C# code examples for every approach listed above.
+Each `SKILL.md` follows this section order:
+
+1. **Frontmatter** — YAML with `name` and `description` (used for agent skill matching).
+2. **H1 heading + enriched introduction** — A concise definition of the concept, followed by 2-4 sentences explaining *why* this matters (the problem it solves, consequences of not doing it, architectural reasoning). End the intro with a **"When to use this vs. alternatives"** bulleted list that cross-references related skills by relative path (e.g., `[vs-commands](../vs-commands/SKILL.md)`).
+3. **Approach sections** — Numbered `## 1. VisualStudio.Extensibility`, `## 2. VSIX Community Toolkit`, `## 3. VSSDK` sections with working C# code examples, NuGet packages, and key namespaces for each approach.
+4. **Key guidance** — A short bulleted summary of best practices.
+5. **Troubleshooting** — 3-6 bullet points in **symptom → cause → fix** format covering common "it doesn't work" scenarios specific to the skill's topic.
+6. **What NOT to do** — Blockquote warnings (`> **Do NOT** ...`) calling out anti-patterns, deprecated APIs, and common mistakes.
+7. **See also** — Cross-references to related skills with a one-line explanation of the relationship. Format: `- [vs-foo](../vs-foo/SKILL.md) — reason this is related`.
+8. **References** — Links to official Microsoft Learn documentation.
+
+Additional requirements for each section:
+- Each approach section must include working C# code examples.
 - Clearly label each section or code block with which approach it belongs to.
 - Note any NuGet packages or namespaces required for each approach.
-- Link to the official Microsoft Learn documentation where applicable.
+- The enriched introduction, troubleshooting, and see-also sections serve dual purposes: they provide context for agents *and* act as the source of truth for generating human-centric documentation. Keep them factual and concise (bullets, not prose paragraphs) so a doc generator can expand them without inventing facts.
 
 ## Anti-Patterns and "Do NOT" Guidance
 

@@ -7,6 +7,15 @@ description: Subscribe to and handle build events in Visual Studio extensions. U
 
 When your extension needs to react to solution or project builds — for example, running analysis after a successful build, showing a notification on failure, or tracking build timing — you need to subscribe to build events. Visual Studio provides multiple mechanisms across its extensibility models.
 
+Build events let extensions integrate into the development feedback loop — the moment code compiles, your extension can validate output, update UI, or trigger downstream processes. Without them, extensions must poll for build state, which is both wasteful and unreliable. The critical nuance is that build event handlers run on the UI thread, so long-running work in an event handler freezes the entire IDE.
+
+**When to use this vs. alternatives:**
+- React to build start, completion, or failure → **this skill**
+- React to solution/project open, close, or rename → [vs-solution-events](../vs-solution-events/SKILL.md)
+- Surface build errors/warnings in the Error List → [vs-error-list](../vs-error-list/SKILL.md)
+- Show progress during a long custom build step → [vs-background-tasks-progress](../vs-background-tasks-progress/SKILL.md)
+- Intercept the Build command itself (before it runs) → [vs-command-intercept](../vs-command-intercept/SKILL.md)
+
 ## Decision guide: which build event API to use
 
 | Approach | Scope | Key feature |
@@ -363,3 +372,29 @@ public sealed class MyPackage : AsyncPackage
 - **Prefer** `VS.Events.BuildEvents` (Toolkit) for the simplest subscription model.
 - **Prefer** `IVsUpdateSolutionEvents2` over `IVsUpdateSolutionEvents` — it adds per-project `UpdateProjectCfg_Begin`/`Done` methods.
 - **Note:** The `dwAction` parameter in `UpdateProjectCfg_Begin/Done` distinguishes between Build (`0x010000`), Clean (`0x100000`), and Rebuild (`0x410000`).
+
+## Troubleshooting
+
+- **Build events stop firing after a while:** The COM runtime garbage-collected your event sink because you only held a local reference. Store the `BuildEvents` object (DTE) or the advise cookie (`IVsSolutionBuildManager`) in a class-level field.
+- **Event handler throws `COMException` or `RPC_E_WRONG_THREAD`:** You're accessing `IVsHierarchy` or other COM objects from a background thread. Add `ThreadHelper.ThrowIfNotOnUIThread()` at the top of your handler.
+- **`UpdateSolution_Done` reports success but a project actually failed:** Check `fSucceeded` and `fCanceled` parameters carefully. `fSucceeded == 1` means no errors; `fSucceeded == 0` with `fCanceled == 0` means there were failures.
+- **Per-project events not available:** You're implementing `IVsUpdateSolutionEvents` (v1). Switch to `IVsUpdateSolutionEvents2` which adds `UpdateProjectCfg_Begin` and `UpdateProjectCfg_Done`.
+- **Events fire but `IVsSolutionBuildManager` returns stale state:** Build state queries during event callbacks may not reflect the final state. If you need post-build results, defer your logic with `await Task.Yield()` or queue it after the callback returns.
+
+## What NOT to do
+
+> **Do NOT** perform long-running work synchronously in build event handlers. They run on the UI thread — blocking causes the IDE to freeze. Queue background work with `JoinableTaskFactory.RunAsync` and return from the handler immediately.
+
+> **Do NOT** use `EnvDTE.BuildEvents` in new extensions. It's a legacy COM automation API that requires careful reference management (COM garbage collection) and doesn't integrate with the modern threading model. Use `VS.Events.BuildEvents` (Toolkit) or `IVsUpdateSolutionEvents2` (VSSDK).
+
+> **Do NOT** forget to unsubscribe from build events (`UnadviseUpdateSolutionEvents`) when your package is disposed. Leaked event subscriptions cause memory leaks and can crash if the callback fires after your objects are disposed.
+
+> **Do NOT** hold only a local reference to DTE event objects. The COM runtime will garbage-collect the event sink, causing events to silently stop firing. Store the event object in a class-level field.
+
+## See also
+
+- [vs-solution-events](../vs-solution-events/SKILL.md) — solution/project lifecycle events (open, close, rename)
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing build errors in the Error List
+- [vs-command-intercept](../vs-command-intercept/SKILL.md) — intercepting the Build command before it executes
+- [vs-async-threading](../vs-async-threading/SKILL.md) — proper async patterns in event handlers
+- [vs-background-tasks-progress](../vs-background-tasks-progress/SKILL.md) — showing progress during build-related work

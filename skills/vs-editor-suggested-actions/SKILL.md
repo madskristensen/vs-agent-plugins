@@ -14,6 +14,14 @@ Common scenarios:
 - Suggest code generation or transformation based on context
 - Add custom actions to the lightbulb menu for any content type
 
+This skill covers the `ISuggestedAction` interface family in depth. The API has evolved across VS versions (`ISuggestedAction` → `ISuggestedAction2` → `ISuggestedAction3`, and `ISuggestedActionsSource` → `ISuggestedActionsSource2` → `IAsyncSuggestedActionsSource`). Using the newest interface your minimum target supports gives you async support, priority control, and incremental results — which significantly improves lightbulb responsiveness.
+
+**When to use this vs. alternatives:**
+- Language-agnostic code actions for the lightbulb → **this skill** (`ISuggestedAction`)
+- C#/VB code fixes through Roslyn → `CodeFixProvider` / `CodeRefactoringProvider`
+- High-level light bulb overview and patterns → [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md)
+- Diagnostic squiggles that light bulb fixes pair with → [vs-editor-tagger](../vs-editor-tagger/SKILL.md)
+
 ---
 
 ## Interface Evolution Overview
@@ -656,6 +664,21 @@ private void OnAnalysisCompleted()
 > **Do NOT** forget to call `collector.Complete()` in `GetSuggestedActionsAsync`. Use `try/finally` to guarantee it runs even on cancellation or exceptions. Forgetting this call causes the lightbulb to spin indefinitely.
 
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, the lightbulb simply doesn't show your actions.
+
+## Troubleshooting
+
+- **Light bulb never appears:** Check the MEF asset type in `.vsixmanifest`. Verify `[ContentType]` matches the file type. Ensure `HasSuggestedActionsAsync` or `GetSuggestedActionSetsAsync` returns results.
+- **Actions appear but `Invoke` does nothing:** Ensure you're applying edits via `ITextBuffer` or Roslyn APIs. If you return from `Invoke` without modifying anything, the action appears to do nothing.
+- **Editor becomes sluggish when moving the caret:** `HasSuggestedActionsAsync` is doing too much work. Move analysis to a background thread and cache results.
+- **Lightbulb spins indefinitely:** You forgot to call `collector.Complete()` in `GetSuggestedActionsAsync`. Use `try/finally` to guarantee it runs.
+- **Nested/sub-actions don't appear:** Set `HasActionSets = true` on the parent `ISuggestedAction` and return the sub-actions from `ActionSets`.
+
+## See also
+
+- [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md) — high-level light bulb patterns and overview
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers that produce diagnostic squiggles light bulbs can fix
+- [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md) — hover tooltips as complementary information
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing errors alongside light bulb fixes
 
 ## References
 

@@ -12,6 +12,15 @@ Editor margins are UI panels attached to the edges of the text editor — left (
 - Display a status bar or info panel below the editor
 - Add line-level annotations in the left margin
 
+Margins are the natural location for UI that tracks editor content line-by-line (gutters) or provides persistent supplementary information (bottom/top panels). Unlike adornments which draw over text, margins have their own reserved space and don't interfere with text selection or scrolling. The VisualStudio.Extensibility model now supports margins via Remote UI, while the VSSDK/Toolkit approach uses WPF directly.
+
+**When to use margins vs. alternatives:**
+- Per-line icons or indicators in the gutter → **margin with `IGlyphFactory`** (this skill)
+- Persistent panel above or below the editor → **margin** (this skill)
+- Visual overlays on top of text (highlights, inline decorations) → adornments (see [vs-editor-adornment](../vs-editor-adornment/SKILL.md))
+- Inline metadata above code elements → CodeLens (see [vs-codelens](../vs-codelens/SKILL.md))
+- A full dockable panel (not attached to the editor) → tool window (see [vs-tool-window](../vs-tool-window/SKILL.md))
+
 ---
 
 ## MEF Asset Type Requirement
@@ -318,6 +327,14 @@ You'll also need a tagger that produces `MyGlyphTag` spans — see the **vs-edit
 - Always declare the **MEF component asset type** in `source.extension.vsixmanifest` for the VSSDK approach.
 - Clean up event subscriptions in `Dispose` to avoid memory leaks.
 
+## Troubleshooting
+
+- **Margin doesn't appear:** Check the MEF asset type in `.vsixmanifest`. Verify `[MarginContainer]` uses a valid `PredefinedMarginNames` value. Verify `[ContentType]` matches the file type.
+- **Margin appears but has zero height/width:** You must explicitly set `Height` (top/bottom margins) or `Width` (left/right margins) on your margin control.
+- **Glyph icons don't appear in the gutter:** Ensure your `IGlyphFactoryProvider` exports `[TagType(typeof(YourTag))]` and that a tagger is producing `YourTag` instances for the correct spans.
+- **Margin causes editor lag:** Heavy work in the margin constructor or `LayoutChanged` handler. Pre-compute on a background thread.
+- **Memory leak:** You're not implementing `IDisposable` on the margin or not unsubscribing from text buffer events in `Dispose`.
+
 ## What NOT to do
 
 > **Do NOT** forget to clean up event subscriptions in `Dispose()`. Margins are created and destroyed as text views open and close. Leaked subscriptions (e.g., to `ITextBuffer.Changed`, `LayoutChanged`, or solution events) accumulate over time and cause memory leaks and stale callbacks.
@@ -329,6 +346,13 @@ You'll also need a tagger that produces `MyGlyphTag` spans — see the **vs-edit
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for the VSSDK/Toolkit in-process approach. Without it, the margin provider is silently ignored. Note: this is **not** required for the VisualStudio.Extensibility out-of-process approach.
 
 > **Do NOT** do heavy work in the margin constructor or in response to every `LayoutChanged` event. Margins are part of the editor rendering pipeline — slow margins cause visible lag when scrolling and editing.
+
+## See also
+
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — visual overlays as an alternative to margins
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers provide the data that glyph margins render
+- [vs-editor-text-view-listener](../vs-editor-text-view-listener/SKILL.md) — the text view creation pattern used by margin providers
+- [vs-theming](../vs-theming/SKILL.md) — theme-aware colors and brushes in margin UI
 
 ## References
 

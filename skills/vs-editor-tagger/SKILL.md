@@ -14,6 +14,15 @@ Common scenarios:
 - Mark text spans with colored highlights (text markers)
 - Provide structure tags for code block visualization
 
+Taggers are the lowest-level building block in the VS editor extensibility model — classifiers, adornments, margins, and even some light bulb features depend on tag data. A tagger's `GetTags` method runs on the UI thread during every render pass, making performance the primary concern. The pattern of "parse on a background thread, cache results, read from cache in `GetTags`" is essential.
+
+**When to use taggers vs. alternatives:**
+- Squiggly underlines for errors/warnings → **tagger** with `IErrorTag` (this skill) — or Roslyn `DiagnosticAnalyzer` for C#/VB
+- Code folding / outlining → **tagger** with `IOutliningRegionTag` (this skill)
+- Text coloring / syntax highlighting → classifier (see [vs-editor-classifier](../vs-editor-classifier/SKILL.md)) — built on taggers internally
+- Visual decorations (highlights, overlays) → adornments (see [vs-editor-adornment](../vs-editor-adornment/SKILL.md))
+- Gutter icons driven by tags → margin with `IGlyphFactory` (see [vs-editor-margin](../vs-editor-margin/SKILL.md))
+
 ---
 
 ## MEF Asset Type Requirement
@@ -313,6 +322,14 @@ internal sealed class HighlightTagger : ITagger<TextMarkerTag>
 - `GetTags` runs on the UI thread — avoid expensive computation. Parse on a background thread and cache results.
 - Fire `TagsChanged` to signal the editor to re-query your tagger.
 
+## Troubleshooting
+
+- **Tags don't appear at all:** Check the MEF asset type in `.vsixmanifest`. Verify `[ContentType]` and `[TagType]` attributes on the provider match the file type and tag type.
+- **Squiggles/markers appear but are stale or don't update:** You're not firing `TagsChanged` when your cached data updates. The editor won't re-query without this event.
+- **Editor is slow after adding tagger:** `GetTags` is doing too much work. Parse on a background thread and read from cache in `GetTags`.
+- **Tags appear on wrong spans after edits:** You're not translating spans to the current snapshot. Use `ITrackingSpan` or translate with `snapshot.CreateTrackingSpan`.
+- **Duplicate taggers created:** You're using `IViewTaggerProvider` when `ITaggerProvider` would suffice. `IViewTaggerProvider` creates one tagger per view; `ITaggerProvider` creates one per buffer.
+
 ## What NOT to do
 
 > **Do NOT** use custom `ITagger<IErrorTag>` taggers to produce diagnostic squiggles for C#, VB, or any language with Roslyn or LSP support. Use **Roslyn analyzers** (`DiagnosticAnalyzer` + `CodeFixProvider`) or **Language Server Protocol** (LSP `textDocument/publishDiagnostics`) instead. These approaches are architecturally correct, run out-of-process, integrate with the Error List, and support code fixes. Custom error taggers bypass all of that infrastructure.
@@ -328,6 +345,14 @@ internal sealed class HighlightTagger : ITagger<TextMarkerTag>
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported tagger provider is **silently ignored** — no error, no log, tags simply don't appear.
 
 > **Do NOT** confuse `ITaggerProvider` (buffer-level) with `IViewTaggerProvider` (view-level). Use `IViewTaggerProvider` only when your tagger needs access to the `ITextView` (e.g., for viewport-relative calculations). Using the wrong one can result in missing tags or unnecessary duplicate tagger instances.
+
+## See also
+
+- [vs-editor-classifier](../vs-editor-classifier/SKILL.md) — classifiers built on the tagger infrastructure
+- [vs-editor-adornment](../vs-editor-adornment/SKILL.md) — adornments that visualize tagged spans
+- [vs-editor-margin](../vs-editor-margin/SKILL.md) — glyph margins that render icons for tagged spans
+- [vs-editor-lightbulb](../vs-editor-lightbulb/SKILL.md) — light bulb actions paired with diagnostic tags
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing tagged errors in the Error List
 
 ## References
 

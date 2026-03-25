@@ -7,6 +7,14 @@ description: Add custom nodes to Solution Explorer in Visual Studio extensions u
 
 Extensions can add custom nodes (virtual items) to the Solution Explorer tree using the `IAttachedCollectionSourceProvider` MEF pattern. This allows injecting nodes under the solution node, project nodes, or other existing hierarchy items.
 
+Custom nodes let your extension surface non-file data directly in Solution Explorer — such as database tables, API endpoints, cloud resources, or dependency details — where developers already navigate. Without custom nodes, users must switch to a separate tool window or external tool to see this information, breaking their workflow.
+
+**When to use this vs. alternatives:**
+- Add virtual (non-file) child nodes under existing Solution Explorer items → **Custom nodes** (this skill)
+- Query or select existing projects/files in Solution Explorer → [vs-solution-explorer](../vs-solution-explorer/SKILL.md)
+- Add context menu actions on existing nodes → [vs-context-menu](../vs-context-menu/SKILL.md)
+- Show extension-specific content in a separate panel → [vs-tool-window](../vs-tool-window/SKILL.md)
+
 ---
 
 ## VisualStudio.Extensibility (out-of-process) — Not Supported
@@ -461,6 +469,29 @@ public IDragDropSourceController DragDropSourceController { get; } = new MyDragD
 - All UI-thread access must go through `ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()` or `ThreadHelper.ThrowIfNotOnUIThread()`.
 
 ---
+
+## Troubleshooting
+
+- **Custom nodes don't appear at all:** Verify the `MefComponent` asset type is in `.vsixmanifest`. Check the MEF error log at `%LOCALAPPDATA%\Microsoft\VisualStudio\17.0_<id>\ComponentModelCache\Microsoft.VisualStudio.Default.err` for composition failures.
+- **Nodes appear under wrong parent:** Your `HasItems` method isn't correctly identifying the parent item type. Use `is` type checks and verify the hierarchy item represents the expected node kind.
+- **Tree doesn't update when data changes:** Use `ObservableCollection<T>` for the children collection and raise `PropertyChanged` for `HasItems` and `Items`. Static `List<T>` won't trigger tree refresh.
+- **Icons are missing or show generic placeholder:** Verify `KnownMonikers` usage with `ImageCatalogGuid`. Custom image monikers need registration via `IImageServiceProvider`.
+- **Clicking a custom node throws on UI thread access:** Your `ITreeDisplayItem` property accessors are called on the UI thread. Ensure they don't do async work or block — pre-compute values and return cached data.
+
+## What NOT to do
+
+> **Do NOT** use this approach with VisualStudio.Extensibility (out-of-process). `IAttachedCollectionSourceProvider` is a MEF contract that requires in-process access. The out-of-process model has no equivalent.
+
+> **Do NOT** block in `HasItems` or `Items` property accessors. These are called on the UI thread during tree rendering. Load data asynchronously and update the `ObservableCollection` when ready.
+
+> **Do NOT** forget `[Order(Before = HierarchyItemsProviderNames.Contains)]` on your source provider. Without it, your nodes may not be processed.
+
+## See also
+
+- [vs-solution-explorer](../vs-solution-explorer/SKILL.md) — querying and selecting existing Solution Explorer items
+- [vs-context-menu](../vs-context-menu/SKILL.md) — adding right-click actions (can be combined with custom nodes)
+- [vs-tool-window](../vs-tool-window/SKILL.md) — alternative: show data in a dedicated tool window
+- [vs-theming](../vs-theming/SKILL.md) — theming custom node UI if using WPF elements
 
 ## Additional resources
 

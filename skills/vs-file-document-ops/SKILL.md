@@ -7,6 +7,15 @@ description: Work with files and documents programmatically in Visual Studio ext
 
 A *document* is the in-memory representation of a file opened in Visual Studio. Extensions commonly need to open files, read or edit text, and react to document lifecycle events (open, save, close).
 
+Document operations are fundamental to nearly every extension — whether you're formatting on save, analyzing text changes, or opening files programmatically. The key abstraction is the Running Document Table (RDT), which tracks all open documents in VS. The VisualStudio.Extensibility model simplifies this with `IDocumentEventsListener` and `EditorExtensibility`, while the VSSDK/Toolkit approaches give direct access to `ITextBuffer` and the RDT.
+
+**When to use this vs. alternatives:**
+- Open, read, edit, or save files programmatically → **this skill**
+- React to document open/save/close events → **this skill**
+- React to text content changes in the editor → combine with [vs-editor-text-view-listener](../vs-editor-text-view-listener/SKILL.md)
+- Intercept the Save command before it runs → [vs-command-intercept](../vs-command-intercept/SKILL.md)
+- Surface errors from file analysis → [vs-error-list](../vs-error-list/SKILL.md)
+
 ## Decision guide
 
 | Task | VisualStudio.Extensibility | Community Toolkit | VSSDK |
@@ -395,6 +404,32 @@ public class MyRunningDocTableEvents : IVsRunningDocTableEvents3
 - When editing text, group multiple changes into a single edit session (`ITextEdit` in VSSDK/Toolkit, `EditAsync` batch in Extensibility) so they form one undo unit.
 - Use document events rather than polling to react to save/open/close.
 - Never assume the active document is a text document — it could be a designer, image, or binary file.
+
+## Troubleshooting
+
+- **Document events don't fire:** For Toolkit, verify `VS.Events.DocumentEvents` is being subscribed to in `InitializeAsync`. For VSSDK, ensure you're advising on `IVsRunningDocTableEvents` via `IVsRunningDocumentTable.AdviseRunningDocTableEvents`.
+- **Text edits are lost / don't persist:** You're editing a snapshot rather than the live buffer. Use `ITextBuffer.Replace()` (VSSDK/Toolkit) or `EditorExtensibility.EditAsync` (Extensibility) to apply changes to the live document.
+- **Multiple edits create multiple undo entries:** Group related edits in a single `ITextEdit` session (`ITextBuffer.CreateEdit()` → apply changes → `edit.Apply()`) so they're treated as one undo unit.
+- **File path is null or wrong:** Not all documents have file paths (e.g., unsaved "Untitled" files). Always check for null. Use `ITextDocument.FilePath` or the RDT's moniker.
+- **Document opened but not visible:** `OpenDocumentAsync` / `VS.Documents.OpenAsync` opens the document but may not bring the window to the foreground. Call `IVsWindowFrame.Show()` or activate the document view.
+
+## What NOT to do
+
+> **Do NOT** use `System.IO.File.ReadAllText` to read files that may be open in VS. The in-memory buffer may have unsaved changes. Use the VS document/text buffer APIs to get the current content.
+
+> **Do NOT** modify files on disk while they're open in VS without going through the document APIs. Direct file writes cause out-of-sync warnings and can corrupt the user's undo history.
+
+> **Do NOT** forget to dispose `ITextEdit` objects. Always use `using` blocks for text edit sessions.
+
+> **Do NOT** assume the active document is a text document. It could be a designer, binary, or image file. Check the document type before accessing text buffer APIs.
+
+## See also
+
+- [vs-editor-text-view-listener](../vs-editor-text-view-listener/SKILL.md) — reacting to text view open/close
+- [vs-command-intercept](../vs-command-intercept/SKILL.md) — intercepting Save, Open, or other document commands
+- [vs-solution-events](../vs-solution-events/SKILL.md) — solution/project lifecycle events
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing analysis results from document content
+- [vs-async-threading](../vs-async-threading/SKILL.md) — thread-safe patterns for document access
 
 ## References
 

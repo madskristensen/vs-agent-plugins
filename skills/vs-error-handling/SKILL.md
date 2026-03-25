@@ -10,6 +10,15 @@ Exceptions will occur in any extension. Handle them in a way that:
 2. Informs the user at an appropriate level of severity.
 3. Never crashes Visual Studio.
 
+Unhandled exceptions in an in-process extension can crash the entire IDE, not just your feature. Even in the out-of-process model, unhandled exceptions terminate your extension host process, breaking all functionality until VS restarts it. Proper error handling also means choosing the right notification channel — a modal error dialog for a recoverable background issue trains users to ignore your extension, while silently swallowing errors makes bugs invisible. The patterns here ensure errors are always logged (for you) and surfaced at the right severity (for the user).
+
+**When to use this vs. alternatives:**
+- Logging + notifying the user about errors → **this skill**
+- Avoiding threading mistakes that cause crashes → [vs-async-threading](../vs-async-threading/SKILL.md)
+- Adding items to the VS Error List (build errors, warnings) → [vs-error-list](../vs-error-list/SKILL.md)
+- Showing a non-blocking info bar notification → [vs-info-bar](../vs-info-bar/SKILL.md)
+- Showing a message box for high-severity errors → [vs-message-box](../vs-message-box/SKILL.md)
+
 ---
 
 ## Strategy: pick the right response by severity
@@ -328,6 +337,34 @@ GuardedOperations.CallExtensionPoint(this, () => {
 - **Ship .pdb files** to get meaningful stack traces.
 - **Use `TraceSource`** in the new extensibility model; **use `ex.Log()`** in the Community Toolkit.
 - **Match notification severity** to the user impact — don't show a modal dialog for a recoverable background error.
+
+## Troubleshooting
+
+- **Exceptions are silently swallowed — no log output:** You're catching exceptions without logging them. Every `catch` block should call `ex.Log()` (Toolkit), `_logger.TraceEvent(...)` (Extensibility), or write to the Activity Log (VSSDK) before any user notification.
+- **Output Window pane doesn't appear:** The `ex.Log()` Toolkit helper writes to a pane named after your extension. Open the Output Window and check the **Show output from** dropdown — your pane may exist but not be selected.
+- **TraceSource logs are empty (Extensibility):** Ensure you're injecting `TraceSource` via the constructor, not creating a new instance manually. The framework-provided `TraceSource` is wired to the VS logging infrastructure; a manually created one writes nowhere.
+- **Activity log file is empty or missing:** The Activity Log is only written when VS is launched with `/Log`. For development use `%APPDATA%\Microsoft\VisualStudio\<version>\ActivityLog.xml`. Consider the Output Window or TraceSource for day-to-day logging instead.
+- **VS crashes with no exception in your logs:** An `async void` method threw an unhandled exception. Search for `async void` and convert to `async Task`. See [vs-async-threading](../vs-async-threading/SKILL.md).
+- **User sees raw stack traces in error dialogs:** You're passing `ex.ToString()` or `ex.StackTrace` to the message box. Log the full exception, but show only `ex.Message` (or a friendlier summary) to the user.
+
+## What NOT to do
+
+> **Do NOT** swallow exceptions silently with empty `catch` blocks. At minimum, log every exception to the Output Window, TraceSource, or Activity Log. Silent failures make bugs invisible and impossible to diagnose.
+
+> **Do NOT** show raw exception messages or stack traces in user-facing message boxes. They may contain file paths, internal type names, or user data. Log the full exception; show a user-friendly summary.
+
+> **Do NOT** use `async void` for error-prone code paths. An unhandled exception in `async void` crashes the entire VS process. Return `Task` and use `JoinableTaskFactory.RunAsync` for fire-and-forget scenarios.
+
+> **Do NOT** show modal error dialogs for recoverable background errors or during solution load. Use an info bar or status bar message instead. Modal dialogs during unattended operations are unexpected and disruptive.
+
+> **Do NOT** create a new `TraceSource` instance manually in VisualStudio.Extensibility extensions. Inject the framework-provided `TraceSource` through the constructor — it's wired to the VS log pipeline. A manually created one writes nowhere useful.
+
+## See also
+
+- [vs-async-threading](../vs-async-threading/SKILL.md) — avoiding `async void` crashes and proper cancellation handling
+- [vs-message-box](../vs-message-box/SKILL.md) — showing error dialogs at the right severity level
+- [vs-info-bar](../vs-info-bar/SKILL.md) — non-blocking error notifications
+- [vs-error-list](../vs-error-list/SKILL.md) — surfacing build or analysis errors in the Error List
 
 ## References
 

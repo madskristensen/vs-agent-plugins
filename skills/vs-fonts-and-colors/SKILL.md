@@ -9,6 +9,14 @@ Extensions can register custom font and color categories that appear on the **To
 
 This is different from general theming (matching VS's Light/Dark theme). This is about letting users customize *your extension's* display items — like a custom editor's syntax colors.
 
+Registering custom Fonts & Colors items gives users control over your extension's visual appearance through the standard VS settings page they already know. Without it, your extension either hard-codes colors (which break in different themes) or requires its own custom settings UI. Fonts & Colors entries also integrate with the VS theme system — they can have default values per theme (Light, Dark, High Contrast) that VS applies automatically when the user switches themes.
+
+**When to use this vs. alternatives:**
+- User-customizable colors for extension-specific display items → **Fonts & Colors** (this skill)
+- Matching your WPF UI to the current VS theme (Light/Dark/HC) → [vs-theming](../vs-theming/SKILL.md)
+- Syntax coloring via classification types → [vs-editor-classifier](../vs-editor-classifier/SKILL.md) (classifications auto-appear in Fonts & Colors)
+- Extension settings beyond colors (booleans, strings, enums) → [vs-options-settings](../vs-options-settings/SKILL.md)
+
 ---
 
 ## 1. VSIX Community Toolkit (in-process)
@@ -199,6 +207,27 @@ The VisualStudio.Extensibility SDK does **not** currently provide an API for reg
 If you need Fonts and Colors support from an out-of-process extension, use a mixed in-proc/out-of-proc extension pattern with an in-process companion that handles the registration.
 
 ---
+
+## Troubleshooting
+
+- **Items don't appear in Fonts & Colors page:** Verify the `[ProvideEditorFormatDefinition]` or `[ProvideFontAndColorsCategory]` attributes are present on your package. For classifications, ensure `[UserVisible(true)]` is set on the `ClassificationFormatDefinition`.
+- **Colors reset when switching themes:** You need to define per-theme defaults. Use the VS theme-aware color APIs or `ThemeResourceKey` to specify different defaults for Light, Dark, and High Contrast.
+- **Custom colors don't update when user changes them in settings:** You're caching the color at startup. Subscribe to `IVsFontAndColorEvents` to get notified when settings change.
+- **Colors look wrong in High Contrast mode:** You're hard-coding RGB values. Use system colors or VS theme tokens for High Contrast.
+
+## What NOT to do
+
+> **Do NOT** hard-code RGB color values without providing per-theme defaults. Colors that look good in Light theme can be invisible in Dark or High Contrast.
+
+> **Do NOT** create your own color-picker settings UI. Use the VS Fonts & Colors infrastructure — it's what users expect and it handles theme switching automatically.
+
+> **Do NOT** use `System.Drawing.Color` or `System.Windows.Media.Color` directly in WPF elements. Use `ThemeResourceKey` or VS color service bindings so your colors update when the user changes settings.
+
+## See also
+
+- [vs-theming](../vs-theming/SKILL.md) — matching WPF UI to the VS theme
+- [vs-editor-classifier](../vs-editor-classifier/SKILL.md) — classifications that appear in Fonts & Colors automatically
+- [vs-options-settings](../vs-options-settings/SKILL.md) — general extension settings beyond colors
 
 ## Additional resources
 

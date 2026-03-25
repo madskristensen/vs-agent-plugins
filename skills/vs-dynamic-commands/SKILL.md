@@ -7,6 +7,14 @@ description: Create dynamic menu items that change at runtime based on data in V
 
 Dynamic commands create menu items on the fly based on runtime data. Unlike regular commands that have a fixed set of buttons, dynamic commands generate one menu item per data item — perfect for "recent files" lists, open-document pickers, or any contextual menu that changes over time.
 
+Dynamic commands solve a fundamental UX problem: static menus can't represent variable-length data. A "Recent Files" list, a list of open documents, or a set of available configurations are all runtime-determined. Without dynamic commands, you'd have to pre-allocate a fixed number of hidden menu items and show/hide them — which is fragile and limits the list size. The `DynamicItemStart` VSCT flag and `BaseDynamicCommand` handle the plumbing of allocating command IDs from a range and matching them to data items.
+
+**When to use this vs. alternatives:**
+- Menu items generated from runtime data (lists, recent items) → **this skill**
+- Fixed commands that show/hide based on context → [vs-command-visibility](../vs-command-visibility/SKILL.md)
+- A static set of commands with fixed menu entries → [vs-commands](../vs-commands/SKILL.md)
+- An interactive list that doesn't fit in a menu (too many items) → tool window with a list UI (see [vs-tool-window](../vs-tool-window/SKILL.md))
+
 ---
 
 ## 1. VSIX Community Toolkit (in-process)
@@ -229,6 +237,28 @@ However, you can achieve similar behavior by:
 3. **Using a mixed in-proc/out-of-proc extension** — keep your main logic out-of-process but use an in-process companion for the dynamic command registration.
 
 ---
+
+## Troubleshooting
+
+- **Dynamic menu items don't appear:** Verify the `.vsct` button has the `DynamicItemStart` command flag. Without it, VS treats the command as a single static button.
+- **Only the first item appears:** Your `GetItems()` override (Toolkit) or `MatchedCommandId` loop (VSSDK) isn't returning all items. Debug by checking the data source and ensuring the ID range is large enough.
+- **Click handler fires for the wrong item:** The `MatchedCommandId` offset calculation is off. The selected item index is `commandId - baseCommandId`. Verify your base ID matches the `IDSymbol` value in `.vsct`.
+- **Menu flickers or items appear stale:** The data source for dynamic items is changing between `BeforeQueryStatus` calls. Cache the list at a stable point and only refresh on explicit triggers.
+
+## What NOT to do
+
+> **Do NOT** pre-allocate fixed hidden commands as a substitute for dynamic commands. This approach is fragile, limits the list size, and wastes command ID space. Use `DynamicItemStart` and `BaseDynamicCommand` (Toolkit) or `OleMenuCommand` with `MatchedCommandId` (VSSDK) instead.
+
+> **Do NOT** use dynamic commands for very large lists (50+ items). Menus with many items are hard to navigate. Use a tool window with a searchable list or tree view instead.
+
+> **Do NOT** use VisualStudio.Extensibility for dynamic menu items — it doesn't support `DynamicItemStart`. Use in-process Toolkit/VSSDK, or present dynamic items in a tool window.
+
+## See also
+
+- [vs-commands](../vs-commands/SKILL.md) — static command registration that dynamic commands extend
+- [vs-command-visibility](../vs-command-visibility/SKILL.md) — showing/hiding the dynamic menu based on context
+- [vs-context-menu](../vs-context-menu/SKILL.md) — dynamic items can appear in context menus
+- [vs-tool-window](../vs-tool-window/SKILL.md) — better UX for large or variable-length dynamic lists
 
 ## Additional resources
 

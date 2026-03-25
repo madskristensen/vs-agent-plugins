@@ -12,6 +12,15 @@ Adornments are WPF visuals drawn on the text editor surface. They can highlight 
 - Show an image or icon next to a code element
 - Add a viewport-relative watermark or status overlay
 
+Adornments are one of the most powerful editor integration points — they let you draw arbitrary WPF content directly on the code surface without modifying the underlying text. This is ideal for visual annotations (coverage highlights, inline error markers, color previews) that augment the developer's view of the code. The critical constraint is performance: `LayoutChanged` fires on every scroll and edit, so adornment rendering must be fast or the editor will visibly lag.
+
+**When to use adornments vs. alternatives:**
+- Visual highlights, overlays, or decorations on the editor surface → **adornments** (this skill)
+- Syntax coloring (keyword highlighting, language coloring) → classifier (see [vs-editor-classifier](../vs-editor-classifier/SKILL.md))
+- Gutter icons (per-line glyphs) → margin with `IGlyphFactory` (see [vs-editor-margin](../vs-editor-margin/SKILL.md))
+- Hover tooltips on text → Quick Info (see [vs-editor-quickinfo](../vs-editor-quickinfo/SKILL.md))
+- Inline metadata above code elements → CodeLens (see [vs-codelens](../vs-codelens/SKILL.md))
+
 ---
 
 ## MEF Asset Type Requirement
@@ -266,6 +275,14 @@ internal sealed class WatermarkAdornment
 - Use `ContentType` and `TextViewRole` to scope your adornment to the right editors.
 - Adornments run on the UI thread — keep drawing logic fast.
 
+## Troubleshooting
+
+- **Adornment doesn't appear at all:** Check the MEF asset type in `.vsixmanifest` (the #1 cause). Also verify `[ContentType]` matches the file type you're testing with and `[TextViewRole]` isn't filtering out the editor instance.
+- **Adornment appears but in the wrong position:** Verify you're using `textViewLines.GetCharacterBounds()` or `GetTextMarkerGeometry()` to calculate positions. Character positions change on scroll and view resize — recalculate in `LayoutChanged`.
+- **Editor becomes sluggish after adding adornment:** Your `LayoutChanged` handler is doing too much work. Pre-compute data on a background thread and only draw from cache during layout.
+- **Adornment steals mouse clicks / can't select text underneath:** Set `IsHitTestVisible = false` on decorative (non-interactive) adornment elements.
+- **Memory leak — VS memory grows with each file opened:** You're not unsubscribing from text view events. Subscribe to `ITextView.Closed` to remove your handlers.
+
 ## What NOT to do
 
 > **Do NOT** forget to set `IsHitTestVisible = false` on decorative (non-interactive) adornment elements. Without this, your WPF elements will steal mouse clicks, selections, and scroll events from the editor text underneath, making it impossible for users to click on or select the adorned text.
@@ -277,6 +294,14 @@ internal sealed class WatermarkAdornment
 > **Do NOT** do expensive rendering, parsing, or I/O in the `LayoutChanged` handler. This event fires on every scroll, resize, and text edit. Heavy work here causes visible editor lag. Pre-compute data on a background thread and only read from the cache during layout.
 
 > **Do NOT** attempt to use VisualStudio.Extensibility for editor adornments — it does not support them. The VSSDK in-process MEF approach is the only option. Despite the "legacy" label, it is the correct and supported approach for adornments.
+
+## See also
+
+- [vs-editor-classifier](../vs-editor-classifier/SKILL.md) — text coloring as an alternative to visual adornments
+- [vs-editor-tagger](../vs-editor-tagger/SKILL.md) — taggers provide the spans that adornments can decorate
+- [vs-editor-margin](../vs-editor-margin/SKILL.md) — margin-based UI as an alternative to viewport overlays
+- [vs-editor-text-view-listener](../vs-editor-text-view-listener/SKILL.md) — the `IWpfTextViewCreationListener` pattern used by adornments
+- [vs-theming](../vs-theming/SKILL.md) — respecting VS theme colors in adornment visuals
 
 ## References
 
