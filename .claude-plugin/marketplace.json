@@ -35,7 +35,12 @@
         "./skills/vs-background-tasks-progress",
         "./skills/vs-solution-events",
         "./skills/vs-info-bar",
-        "./skills/vs-build-events"
+        "./skills/vs-build-events",
+        "./skills/vs-error-list",
+        "./skills/vs-theming",
+        "./skills/vs-fonts-and-colors",
+        "./skills/vs-solution-explorer",
+        "./skills/vs-dynamic-commands"
       ]
     }
   ]
