@@ -298,6 +298,18 @@ internal sealed class CompletionTriggerHandler : ICommandHandler<TypeCharCommand
 - Use the async API for better performance and background-thread safety.
 - Scope your provider with `[ContentType]` to avoid interfering with other languages.
 
+## What NOT to do
+
+> **Do NOT** use the legacy synchronous `ICompletionSourceProvider` / `ICompletionSource` API for new extensions targeting VS 2019+. Use the modern async `IAsyncCompletionSourceProvider` / `IAsyncCompletionSource` instead. The legacy API runs `AugmentCompletionSession` synchronously on the UI thread — any I/O, parsing, or network call will freeze the editor. Many old tutorials and walkthroughs still show the legacy API; do not follow them for new code.
+
+> **Do NOT** do expensive work (file I/O, HTTP requests, large allocations) inside `GetCompletionContextAsync`. This method is called on every keystroke while the completion list is open. Pre-compute or cache data in `InitializeCompletion` or on a background thread triggered by document changes.
+
+> **Do NOT** forget to return `CompletionStartData.DoesNotParticipateInCompletion` from `InitializeCompletion` when your source should not contribute to the current completion session. Returning items when you shouldn't adds unnecessary overhead and pollutes the completion list.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, completion simply doesn't appear. This is the #1 cause of "my completion provider doesn't load."
+
+> **Do NOT** omit the `[ContentType]` attribute on your provider. Without it, your completion source may activate for every file type in VS, causing unexpected items to appear in languages you didn't intend to support.
+
 ## References
 
 - [Implementing Custom IntelliSense Completion (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/walkthrough-displaying-statement-completion)

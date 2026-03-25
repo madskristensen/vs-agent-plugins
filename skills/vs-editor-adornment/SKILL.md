@@ -266,6 +266,18 @@ internal sealed class WatermarkAdornment
 - Use `ContentType` and `TextViewRole` to scope your adornment to the right editors.
 - Adornments run on the UI thread — keep drawing logic fast.
 
+## What NOT to do
+
+> **Do NOT** forget to set `IsHitTestVisible = false` on decorative (non-interactive) adornment elements. Without this, your WPF elements will steal mouse clicks, selections, and scroll events from the editor text underneath, making it impossible for users to click on or select the adorned text.
+
+> **Do NOT** forget to unsubscribe from `ITextView.LayoutChanged` (and any other text view events) when the view closes. Subscribe to `ITextView.Closed` and remove your event handlers there. Leaked subscriptions cause memory leaks and can throw exceptions when the view's buffer is recycled.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your `IWpfTextViewCreationListener` is **silently ignored** — no error, no log message, the adornment simply never appears. This is the #1 cause of "my adornment doesn't show up."
+
+> **Do NOT** do expensive rendering, parsing, or I/O in the `LayoutChanged` handler. This event fires on every scroll, resize, and text edit. Heavy work here causes visible editor lag. Pre-compute data on a background thread and only read from the cache during layout.
+
+> **Do NOT** attempt to use VisualStudio.Extensibility for editor adornments — it does not support them. The VSSDK in-process MEF approach is the only option. Despite the "legacy" label, it is the correct and supported approach for adornments.
+
 ## References
 
 - [Creating an Editor Adornment (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/walkthrough-creating-a-view-adornment-commands-and-settings)

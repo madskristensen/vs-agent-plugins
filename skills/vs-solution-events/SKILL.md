@@ -470,6 +470,18 @@ private void OnAfterOpenProject(IVsHierarchy hierarchy)
 - Always unsubscribe from events or call `UnadviseSolutionEvents` when your extension is disposed to prevent memory leaks.
 - Solution events fire on the **main thread** — keep handlers fast and offload heavy work to background tasks.
 
+## What NOT to do
+
+> **Do NOT** enumerate all projects in `OnAfterOpenSolution`. At this point, background-loaded projects may still be loading. Use `OnAfterBackgroundSolutionLoadComplete` instead — it fires only after **all** projects (including deferred/lazy ones) have finished loading.
+
+> **Do NOT** do heavy or long-running work directly inside solution event handlers. These handlers run on the **UI thread**. Expensive file scanning, HTTP requests, or analysis will freeze the IDE. Offload work to a background task using `JoinableTaskFactory.RunAsync` or `Task.Run`, and capture only the data you need from the event arguments first.
+
+> **Do NOT** forget to unsubscribe from events or call `UnadviseSolutionEvents` in your package's `Dispose`. Leaked event subscriptions cause memory leaks that grow with every solution open/close cycle and can lead to exceptions on stale references.
+
+> **Do NOT** implement `IVsSolutionEvents` directly when you only need basic open/close/rename events. Use `VS.Events.SolutionEvents` (Toolkit) or `Microsoft.VisualStudio.Shell.Events.SolutionEvents` (VSSDK static events) — they're simpler and less error-prone. Implement `IVsSolutionEvents` only when you need to **cancel** operations via `OnQueryCloseSolution` / `OnQueryCloseProject`.
+
+> **Do NOT** use `EnvDTE.Events.SolutionEvents` from the legacy DTE automation model. It requires storing a strong field reference to the event object (or COM GC silently stops delivering events), and the DTE model is deprecated for new extensions.
+
 ## References
 
 - [SolutionEvents class (Microsoft.VisualStudio.Shell.Events)](https://learn.microsoft.com/dotnet/api/microsoft.visualstudio.shell.events.solutionevents)

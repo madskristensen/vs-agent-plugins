@@ -456,6 +456,22 @@ public sealed class MyPackage : AsyncPackage
 - Always `Dispose` your tool window content to avoid leaks.
 - Place tool window commands under **View > Other Windows** by convention.
 
+## What NOT to do
+
+> **Do NOT** do slow or async work in the `ToolWindowPane` constructor (VSSDK) or the `Pane` constructor (Community Toolkit). These constructors run on the UI thread and will freeze Visual Studio. For VSSDK, do async work in `AsyncPackage.InitializeAsync`, then call `SwitchToMainThreadAsync` before setting `Content`. For the Community Toolkit, do async work in `CreateAsync`.
+
+> **Do NOT** use the synchronous `Package` base class for tool windows. Always use `AsyncPackage` with `AllowsBackgroundLoading = true` (VSSDK) or `ToolkitPackage` (Community Toolkit). The synchronous `Package` class forces Visual Studio to load your extension on the UI thread at startup, degrading IDE launch time.
+
+> **Do NOT** create WPF controls on a background thread. WPF requires all UI objects to be created on the UI thread. If you create controls before calling `SwitchToMainThreadAsync`, you'll get `InvalidOperationException` or silent rendering failures.
+
+> **Do NOT** set `ToolWindowPane.Content` to a `FrameworkElement` that was created with inline async calls in its constructor. The WPF control constructor should be synchronous and fast — pass pre-loaded data into it as constructor parameters.
+
+> **Do NOT** block the UI thread with `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` inside tool window initialization or event handlers. Use `async`/`await` with `JoinableTaskFactory` for all async work in in-process extensions.
+
+> **Do NOT** forget to `Dispose` your `RemoteUserControl` (VisualStudio.Extensibility) or unsubscribe from events in your WPF `UserControl`. Undisposed tool window content causes memory leaks that accumulate every time the tool window is opened and closed.
+
+> **Do NOT** use `ToolWindowPane` with the older `Package.FindToolWindow` (synchronous). Use `AsyncPackage` and the async initialization pattern shown in this skill. Old VSSDK templates and tutorials may still show the synchronous pattern — do not follow them.
+
 ## References
 
 - [Tool Windows (VisualStudio.Extensibility)](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/tool-window/tool-window)

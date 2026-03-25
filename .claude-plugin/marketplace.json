@@ -48,7 +48,8 @@
         "./skills/vs-open-folder",
         "./skills/vs-tool-window-toolbar",
         "./skills/vs-codelens",
-        "./skills/vs-language-server"
+        "./skills/vs-language-server",
+        "./skills/vs-editor-suggested-actions"
       ]
     }
   ]

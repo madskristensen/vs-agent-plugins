@@ -491,3 +491,15 @@ sink._cookie = cookie;
 - **Don't** use a global (main window) InfoBar unless the message is truly IDE-wide — it causes layout shift.
 - **Prefer** the Toolkit's `VS.InfoBar.CreateAsync()` for the simplest in-proc solution.
 - **Prefer** `ToolWindowPane.AddInfoBar()` when you own the tool window — it handles event wiring automatically.
+
+## What NOT to do
+
+> **Do NOT** use InfoBars for critical, blocking operations where the user **must** respond before continuing. Use a **message box** or **user prompt** instead. InfoBars are non-blocking by design — users can ignore them indefinitely.
+
+> **Do NOT** stack multiple InfoBars in the same window. Users see at most three before the region becomes scrollable and new ones push old ones out of view. If you need to show multiple notifications, consolidate them into a single InfoBar with multiple action items, or dismiss the previous one before showing the next.
+
+> **Do NOT** use a global (main window) InfoBar unless the notification is truly IDE-wide (e.g., extension update available). Global InfoBars cause layout shift in the main window and affect all users' workflows. Prefer attaching InfoBars to the specific tool window or document window where the notification is relevant.
+
+> **Do NOT** forget to call `Unadvise` (VSSDK) or handle `OnClosed` (Toolkit) to clean up event subscriptions when the InfoBar is dismissed. Leaked event handlers accumulate memory and can cause exceptions when the InfoBar host is recycled.
+
+> **Do NOT** use `System.Diagnostics.Process.Start` for hyperlinks in InfoBar actions without validating the URL. InfoBar action text is user-visible but the URL you open should be a known, constant URL — never construct URLs from untrusted input.

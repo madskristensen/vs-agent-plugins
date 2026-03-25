@@ -649,6 +649,24 @@ void UseVsService()
 | Long blocking with dialog | `ThreadHelper.JoinableTaskFactory.Run("title", async (progress, ct) => ...)` |
 | Deferred UI work at idle | `await ThreadHelper.JoinableTaskFactory.StartOnIdle(async delegate { ... });` |
 
+## What NOT to do
+
+> **Do NOT** use `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` on tasks in VS extension code. These synchronously block the calling thread and cause deadlocks when the blocked thread is the UI thread. Use `await` or `JoinableTaskFactory.Run` instead. The VSTHRD002 analyzer will catch this.
+
+> **Do NOT** use `async void` methods or `async void` lambdas. Unhandled exceptions in `async void` crash the entire Visual Studio process. Return `Task` from all async methods and use `JoinableTaskFactory.RunAsync` for fire-and-forget scenarios.
+
+> **Do NOT** use `ConfigureAwait(false)` in VS extension code. The `JoinableTaskFactory` infrastructure relies on the `SynchronizationContext` to avoid deadlocks and correctly marshal back to the UI thread. `ConfigureAwait(false)` bypasses this and can cause hard-to-debug threading issues.
+
+> **Do NOT** use `Thread.Sleep()` for delays. It blocks the current thread completely (including the UI thread if called there). Use `await Task.Delay()` instead.
+
+> **Do NOT** use `Task.Run()` to wrap calls to VSSDK COM interfaces (`IVs*` objects). Most COM objects in VS are STA and **must** be called from the UI thread. Calling them from a thread-pool thread via `Task.Run` causes `InvalidCastException`, `RPC_E_WRONG_THREAD`, or silent data corruption.
+
+> **Do NOT** use `Dispatcher.Invoke`, `Dispatcher.BeginInvoke`, or `ThreadHelper.Generic.Invoke` to switch threads. Use `await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()` — it integrates with the VS threading model and avoids deadlocks. The VSTHRD001 analyzer will catch legacy thread switching.
+
+> **Do NOT** call `SwitchToMainThreadAsync()` without `await`. The call returns a `JoinableTaskFactory.MainThreadAwaitable` that does nothing until awaited. Forgetting `await` means you're still on the background thread. The VSTHRD004 analyzer catches this.
+
+> **Do NOT** use `Lazy<T>` for async initialization. Use `AsyncLazy<T>` from `Microsoft.VisualStudio.Threading` and pass `JoinableTaskFactory` to its constructor. `Lazy<T>` with an async factory can deadlock because its internal lock doesn't yield. The VSTHRD011 analyzer catches this.
+
 ## References
 
 - [Managing Multiple Threads in Managed Code](https://learn.microsoft.com/visualstudio/extensibility/managing-multiple-threads-in-managed-code)

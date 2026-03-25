@@ -219,6 +219,18 @@ var horizontal = new ContainerElement(
 - Use the modern async API (`IAsyncQuickInfoSourceProvider`), not the legacy `IQuickInfoSourceProvider`.
 - Return `null` when your source has nothing to contribute.
 
+## What NOT to do
+
+> **Do NOT** use the legacy `IQuickInfoSourceProvider` / `IQuickInfoSource` API. It is **deprecated** since VS 2017 (15.6). Use `IAsyncQuickInfoSourceProvider` / `IAsyncQuickInfoSource` instead. The legacy API runs synchronously on the UI thread — any parsing, file reads, or network calls in `AugmentQuickInfoSession` will freeze the editor on hover. Old walkthroughs on Microsoft Learn and blog posts still show the legacy API; do not follow them.
+
+> **Do NOT** do heavy computation in `GetQuickInfoItemAsync`. This method is called on every mouse hover — keep it fast. If you need expensive analysis, run it on a background thread triggered by document changes and cache the results.
+
+> **Do NOT** return an empty `QuickInfoItem` when you have nothing to contribute — return `null` instead. Returning an empty item still reserves space in the tooltip and can interfere with other providers' content.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, tooltips simply don't appear.
+
+> **Do NOT** hard-code colors or font sizes in tooltip content. Use `ClassifiedTextElement` and `ContainerElement` with proper classification types so your tooltips respect the user's theme (Dark, Light, High Contrast).
+
 ## References
 
 - [Walkthrough: Displaying Quick Info Tooltips (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/walkthrough-displaying-quickinfo-tooltips)

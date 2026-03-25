@@ -429,6 +429,18 @@ LSP does not define syntax colorization. To provide highlighting, bundle a TextM
 
 ## Key links
 
+> **Do NOT** use the legacy `LanguageService` base class (from `Microsoft.VisualStudio.Package`). It is a pre-LSP API that requires building custom scanners, parsers, and completion sources from scratch. It is far more complex, does not support the Language Server Protocol, and is not maintained. Use `ILanguageClient` (VSSDK) or `LanguageServerProvider` (Extensibility) instead. Old documentation and university course materials may still reference `LanguageService` — do not follow them.
+
+> **Do NOT** use `ILanguageClientMiddleLayer` (non-generic). It is **obsolete**. Use `ILanguageClientMiddleLayer2<T>` instead, which provides strongly-typed middleware interception.
+
+> **Do NOT** update `Newtonsoft.Json` or `StreamJsonRpc` NuGet packages beyond the versions shipped with your target Visual Studio version. These packages are used internally by VS for LSP communication. Version mismatches cause `MissingMethodException`, `TypeLoadException`, or silent protocol failures at runtime. Use binding redirects if your language server requires different versions.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for the VSSDK `ILanguageClient` approach. Without it, your MEF-exported `ILanguageClient` is silently ignored and the language server never activates.
+
+> **Do NOT** use `ISuggestedAction` or custom taggers for diagnostics in languages that have an LSP server. Use `textDocument/publishDiagnostics` from LSP — it integrates with the Error List, provides squiggles, and supports code actions through `textDocument/codeAction`.
+
+> **Do NOT** confuse LSP with extending built-in VS languages (C#, C++, F#). LSP is for adding support for **new** languages. To extend C#/VB, use Roslyn analyzers and code fix providers. To extend C++, use the vcpkg/MSBuild extensibility model.
+
 - [Add an LSP extension (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/adding-an-lsp-extension)
 - [Language Server Provider (VisualStudio.Extensibility)](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/language-server-provider/language-server-provider)
 - [Language Configuration (for local editor features)](https://learn.microsoft.com/visualstudio/extensibility/language-configuration)

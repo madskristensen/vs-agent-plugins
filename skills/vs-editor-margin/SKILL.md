@@ -318,6 +318,18 @@ You'll also need a tagger that produces `MyGlyphTag` spans — see the **vs-edit
 - Always declare the **MEF component asset type** in `source.extension.vsixmanifest` for the VSSDK approach.
 - Clean up event subscriptions in `Dispose` to avoid memory leaks.
 
+## What NOT to do
+
+> **Do NOT** forget to clean up event subscriptions in `Dispose()`. Margins are created and destroyed as text views open and close. Leaked subscriptions (e.g., to `ITextBuffer.Changed`, `LayoutChanged`, or solution events) accumulate over time and cause memory leaks and stale callbacks.
+
+> **Do NOT** forget to set `Height` (for bottom/top margins) or `Width` (for left/right margins) on your margin control. Without explicit sizing, the margin may render with zero size and be invisible to the user.
+
+> **Do NOT** use the wrong `[MarginContainer]` attribute value. Use `PredefinedMarginNames.Bottom`, `PredefinedMarginNames.Top`, `PredefinedMarginNames.Left`, or `PredefinedMarginNames.Right`. A typo or wrong container name causes the margin to silently not appear.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for the VSSDK/Toolkit in-process approach. Without it, the margin provider is silently ignored. Note: this is **not** required for the VisualStudio.Extensibility out-of-process approach.
+
+> **Do NOT** do heavy work in the margin constructor or in response to every `LayoutChanged` event. Margins are part of the editor rendering pipeline — slow margins cause visible lag when scrolling and editing.
+
 ## References
 
 - [Editor Margins (VisualStudio.Extensibility)](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/editor/editor-margin)

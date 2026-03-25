@@ -313,6 +313,22 @@ internal sealed class HighlightTagger : ITagger<TextMarkerTag>
 - `GetTags` runs on the UI thread — avoid expensive computation. Parse on a background thread and cache results.
 - Fire `TagsChanged` to signal the editor to re-query your tagger.
 
+## What NOT to do
+
+> **Do NOT** use custom `ITagger<IErrorTag>` taggers to produce diagnostic squiggles for C#, VB, or any language with Roslyn or LSP support. Use **Roslyn analyzers** (`DiagnosticAnalyzer` + `CodeFixProvider`) or **Language Server Protocol** (LSP `textDocument/publishDiagnostics`) instead. These approaches are architecturally correct, run out-of-process, integrate with the Error List, and support code fixes. Custom error taggers bypass all of that infrastructure.
+
+> **Do NOT** do parsing, regex matching, file I/O, or allocations inside `GetTags`. This method runs on the **UI thread during every scroll, edit, and layout pass**. Expensive work here causes visible jank and typing lag. Instead, parse on a background thread (e.g., triggered by `ITextBuffer.Changed`) and cache the results. `GetTags` should only read from the cache.
+
+> **Do NOT** fire `TagsChanged` for the entire document when only a few spans changed. Pass only the affected `SnapshotSpan` to the `TagsChanged` event — firing it for the whole buffer forces the editor to re-query and re-render all visible lines unnecessarily.
+
+> **Do NOT** forget to raise `TagsChanged` when your cached data updates. Without this event, the editor has no reason to re-query your tagger, and stale or missing squiggles/markers will remain on screen.
+
+> **Do NOT** forget the `[TagType]` or `[ContentType]` attribute on your `ITaggerProvider`. Missing attributes cause the tagger to **silently not load** for your target file type.
+
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported tagger provider is **silently ignored** — no error, no log, tags simply don't appear.
+
+> **Do NOT** confuse `ITaggerProvider` (buffer-level) with `IViewTaggerProvider` (view-level). Use `IViewTaggerProvider` only when your tagger needs access to the `ITextView` (e.g., for viewport-relative calculations). Using the wrong one can result in missing tags or unnecessary duplicate tagger instances.
+
 ## References
 
 - [Walkthrough: Creating a Margin Glyph (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/walkthrough-creating-a-margin-glyph)

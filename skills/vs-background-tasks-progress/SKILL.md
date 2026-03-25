@@ -432,6 +432,18 @@ protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
 - Use `CompletionActions.RetainOnFaulted` to keep failed tasks visible in the Task Status Center so the user can see the error.
 - The **VisualStudio.Extensibility** progress API is the simplest — just call `progress.Report()` with the current step.
 
+## What NOT to do
+
+> **Do NOT** use `Thread.Sleep()` or synchronous blocking waits during long operations. They freeze the UI thread completely. Use `await Task.Delay()` and `async`/`await` patterns instead.
+
+> **Do NOT** use the Threaded Wait Dialog for operations the user didn't explicitly trigger. It's a semi-blocking modal — appropriate only when the user initiated an action and must wait for it to complete (e.g., "Apply refactoring"). For background tasks, use the **Task Status Center** which is non-blocking.
+
+> **Do NOT** show status bar progress for operations that take more than ~10 seconds. The status bar is easy to miss and provides no cancellation support. Use the **Task Status Center** instead — it's visible, supports cancellation, and persists the result.
+
+> **Do NOT** forget to support cancellation for any operation that takes more than a few seconds. Always pass `CancellationToken` through your call chain and check it between steps. Users expect to be able to cancel long-running operations.
+
+> **Do NOT** silently swallow task failures. Use `CompletionActions.RetainOnFaulted` with the Task Status Center so failed tasks remain visible and the user can see what went wrong.
+
 ## References
 
 - [Progress bars for background tasks (Community Toolkit)](https://learn.microsoft.com/visualstudio/extensibility/vsix/recipes/show-progress)

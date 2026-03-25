@@ -455,6 +455,18 @@ When `Supported = false`:
 - **Prefer declarative constraints** (`<VisibilityConstraints>` / `VisibleWhen`) for initial visibility. This avoids loading the package just to hide a command.
 - **Use `BeforeQueryStatus`** only for conditions that cannot be expressed declaratively (e.g., checking runtime state, inspecting file contents).
 
+## What NOT to do
+
+> **Do NOT** use `BeforeQueryStatus` as the **sole** visibility mechanism. It forces the package to load just to evaluate whether a command should be visible. Use **declarative** `<VisibilityConstraints>` (Toolkit/VSSDK) or `VisibleWhen` (Extensibility) for initial show/hide — these work **before** the package loads. Reserve `BeforeQueryStatus` for conditions that require runtime logic.
+
+> **Do NOT** confuse `Command.Supported = false` with `Command.Visible = false`. Setting `Supported = false` means "this command defers its visibility to the UIContext rule" — the command may still be visible. Setting `Visible = false` actually hides it. Despite the misleading name, `Supported` is about **who controls visibility**, not whether the command works.
+
+> **Do NOT** forget `DynamicVisibility` and `DefaultInvisible` command flags in `.vsct` when using UIContext rules or `BeforeQueryStatus` for visibility. Without `DynamicVisibility`, VS ignores visibility changes at runtime. Without `DefaultInvisible`, the command starts visible and then disappears (a flash).
+
+> **Do NOT** hard-code UIContext GUIDs in multiple places. Store the GUID in `.vsct` `<Symbols>` (the Toolkit auto-generates it into `PackageGuids`) and reference it from there. Duplicate GUIDs that drift apart cause visibility rules to silently stop working.
+
+> **Do NOT** use `DTE.Commands` or `EnvDTE.CommandEvents` to manage visibility in new extensions. These are legacy automation APIs that require COM reference management and don't participate in the modern UIContext/activation constraint system.
+
 ## References
 
 - [VisibilityConstraints element (.vsct)](https://learn.microsoft.com/visualstudio/extensibility/visibilityconstraints-element)

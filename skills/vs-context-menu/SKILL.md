@@ -485,3 +485,15 @@ In VSCT, add `DynamicVisibility` and `DefaultInvisible` flags so the button star
 | `BeforeQueryStatus` sees the wrong node | Store the right-clicked node in `PreviewMouseRightButtonDown` (synchronous, before query status runs) — don't rely on `SelectedItem` which may update asynchronously |
 | Menu doesn't appear | Verify the GUID passed to `ShowContextMenu` matches the `guid` on the `<Menu>` in VSCT, and the `menuId` matches the `IDSymbol` value |
 | No separators between command groups | Each `<Group>` with a different priority creates a separator; put buttons in separate groups to get dividers |
+
+## What NOT to do
+
+> **Do NOT** use WPF `ContextMenu` controls on tree views or custom controls inside tool windows. WPF context menus don't integrate with the VS command system — they won't support keyboard shortcuts, command routing, `BeforeQueryStatus` enable/disable, or VS theming. Use VSCT `type="Context"` menus shown via `IVsUIShell.ShowContextMenu` instead.
+
+> **Do NOT** call `ShowContextMenu` without first calling `shell.UpdateCommandUI(1)`. Without this, `BeforeQueryStatus` handlers don't re-evaluate, and commands may show stale enabled/disabled/visible state from the previous invocation.
+
+> **Do NOT** rely on `SelectedItem` in `BeforeQueryStatus` to determine the right-clicked node. `SelectedItem` updates asynchronously and may not reflect the node under the cursor when `BeforeQueryStatus` runs. Instead, capture the right-clicked node in `PreviewMouseRightButtonDown` (synchronous, fires before query status) and store it in a field.
+
+> **Do NOT** parent `<Button>` elements directly to a `<Menu>` in `.vsct`. Always create at least one `<Group>` as an intermediary — buttons parented directly to a menu will not appear. Groups also provide automatic separators between logical clusters of commands.
+
+> **Do NOT** forget to match the GUID in `ShowContextMenu` with the `guid` on the `<Menu>` element in your `.vsct` file. A mismatched GUID causes the menu to silently not appear, with no error message.

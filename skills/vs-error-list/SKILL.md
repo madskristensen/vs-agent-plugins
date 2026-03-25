@@ -278,6 +278,14 @@ If you need Error List support from an out-of-process extension, your options ar
 
 ## Additional resources
 
+> **Do NOT** use `ErrorListProvider` / `ErrorTask` for new extensions. These classes are **deprecated** and predate the modern Error List table infrastructure introduced in VS 2015. They still compile, and many old tutorials and blog posts show them, but they lack support for custom columns, efficient snapshot-based updates, and proper lifecycle management. Use `TableDataSource` (Toolkit) or `ITableDataSource` / `ITableEntriesSnapshot` (VSSDK) instead.
+
+> **Do NOT** follow old walkthroughs that show `TaskProvider.Tasks.Add(new ErrorTask(...))` — this is the deprecated `ErrorListProvider` pattern. Search for `ITableDataSource` examples instead.
+
+> **Do NOT** attempt to write to the Error List from a pure out-of-process VisualStudio.Extensibility extension. The Error List is an in-process feature. If you need Error List integration from an out-of-process extension, use the **Output Window** as an alternative, or create an **in-process hybrid** component that hosts the `TableDataSource`.
+
+> **Do NOT** create a new `TableDataSource` for every error batch. Create a single `TableDataSource` instance in your extension, and update it by publishing new `ITableEntriesSnapshot` instances. Creating multiple sources clutters the Error List's source filter dropdown.
+
 - [VSIX Cookbook — Error List integration](https://www.vsixcookbook.com/recipes/error-list.html)
 - [ErrorListProvider class reference](https://learn.microsoft.com/dotnet/api/microsoft.visualstudio.shell.errorlistprovider)
 - [VisualStudio.Extensibility — Output Window](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/output-window/output-window)

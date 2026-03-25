@@ -17,6 +17,18 @@ If a particular approach does not apply to a skill's topic, explicitly state tha
 - Note any NuGet packages or namespaces required for each approach.
 - Link to the official Microsoft Learn documentation where applicable.
 
+## Anti-Patterns and "Do NOT" Guidance
+
+Each skill should include a **"What NOT to do"** section (or inline warnings) that calls out common mistakes, deprecated patterns, and traps. This is especially important when:
+
+- **Multiple APIs exist for the same task** and only one is recommended (e.g., async vs. legacy synchronous editor APIs). Explicitly state which API to avoid and why.
+- **Old tutorials or documentation** still show a deprecated pattern (e.g., `ErrorListProvider`, `LanguageService` base class, legacy `ICompletionSource`). Warn against following them.
+- **Threading mistakes** are likely — such as blocking the UI thread with `.Result`/`.Wait()`, using `Thread.Sleep()`, calling `ConfigureAwait(false)`, or accessing COM objects from a background thread.
+- **Silent failures** can occur — such as forgetting the MEF asset type in `.vsixmanifest`, which causes components to simply not load with no error message.
+- **Security or stability risks** exist — such as using `System.Windows.MessageBox` (doesn't parent to VS), hard-coding colors (breaks in Dark/High Contrast themes), or doing slow work in constructors.
+
+Format these as clear, scannable warnings (e.g., `> **Do NOT** use ...` blockquotes or a dedicated subsection) so the agent can quickly identify what to avoid.
+
 ## Marketplace Registry
 
 Any new skill, agent, MCP server, or instruction file must be added to and maintained in the `marketplace.json` file. When creating or removing any of these items, update `marketplace.json` accordingly to keep it in sync with the repository contents.

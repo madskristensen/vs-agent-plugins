@@ -252,6 +252,18 @@ statusBar.SetText("Operation completed successfully.");
 - Keep at most **3 choices** in a prompt (the API enforces this in the new model).
 - Always pass a `CancellationToken` and handle dismissal gracefully.
 
+## What NOT to do
+
+> **Do NOT** use `System.Windows.MessageBox` or `System.Windows.Forms.MessageBox` anywhere in a Visual Studio extension. They are not parented to the VS main window — the dialog can appear behind VS, is not themed, and doesn't respect the VS input focus model. Use `VS.MessageBox.ShowAsync` (Toolkit), `VsShellUtilities.ShowMessageBox` (VSSDK), or `ShowPromptAsync` (Extensibility).
+
+> **Do NOT** show message boxes from a background thread without first switching to the UI thread. For the Toolkit, use `VS.MessageBox.ShowAsync` (which handles thread switching). For VSSDK, call `await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()` before calling `VsShellUtilities.ShowMessageBox`.
+
+> **Do NOT** show message boxes during solution load, package initialization, or any unattended operation. Users haven't initiated an action yet and a blocking dialog is unexpected. Use an **InfoBar** (non-blocking) for notifications that arise from background activity.
+
+> **Do NOT** display raw exception messages or stack traces in user-facing message boxes. They may contain sensitive file paths, internal type names, or user data. Log the full exception to the Output Window or ActivityLog, and show a user-friendly summary with a "View details" link instead.
+
+> **Do NOT** use more than 3 choices in a prompt. The `VisualStudio.Extensibility` prompt API enforces this limit. If you need more options, use a custom dialog or tool window instead.
+
 ## References
 
 - [User Prompts (VisualStudio.Extensibility)](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/user-prompt/user-prompts)
