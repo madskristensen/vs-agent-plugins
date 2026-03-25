@@ -40,7 +40,10 @@
         "./skills/vs-theming",
         "./skills/vs-fonts-and-colors",
         "./skills/vs-solution-explorer",
-        "./skills/vs-dynamic-commands"
+        "./skills/vs-dynamic-commands",
+        "./skills/vs-protocol-handler",
+        "./skills/vs-textmate-grammar",
+        "./skills/vs-open-folder"
       ]
     }
   ]
