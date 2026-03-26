@@ -50,7 +50,8 @@
         "./skills/adding-codelens-indicators",
         "./skills/integrating-language-servers",
         "./skills/adding-suggested-actions",
-        "./skills/providing-consuming-services"
+        "./skills/providing-consuming-services",
+        "./skills/creating-custom-editors"
       ]
     }
   ]
