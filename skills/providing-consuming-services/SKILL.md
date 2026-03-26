@@ -417,25 +417,25 @@ The `IsAsyncQueryable = true` flag tells VS that this service supports `GetServi
 
 ## What NOT to do
 
-> **Do NOT** query services in a package constructor. The package has not been sited by Visual Studio yet, and `GetService` / `GetServiceAsync` will return `null`. Always defer service queries to `InitializeAsync` or to an on-demand callback.
+> **Do NOT** query services in a package constructor — the package isn't sited yet; `GetService` returns `null`. Defer to `InitializeAsync`.
 
-> **Do NOT** use `Package.GetGlobalService()` as the primary pattern in async code. It requires a package to have been sited first and runs synchronously. Prefer `GetServiceAsync` or the Community Toolkit's `VS.GetRequiredServiceAsync<S, I>()`.
+> **Do NOT** use `Package.GetGlobalService()` as the primary pattern in async code — runs synchronously. Prefer `GetServiceAsync` or `VS.GetRequiredServiceAsync<S, I>()`.
 
-> **Do NOT** forget `promote: true` when registering a service that other packages need. Without it, the service is only visible within the owning package's `IServiceProvider` chain, and external consumers will get `null` with no error message.
+> **Do NOT** forget `promote: true` when registering a service for other packages — without it, external consumers get `null` with no error.
 
-> **Do NOT** create services eagerly in `InitializeAsync`. Always use the `AddService` callback pattern (lazy factory) so VS only creates the service on first query. Eager creation slows down IDE startup.
+> **Do NOT** create services eagerly in `InitializeAsync` — use the `AddService` callback (lazy factory) so VS only creates on first query.
 
-> **Do NOT** use the synchronous `Package` base class for new extensions. Use `AsyncPackage` (VSSDK/Toolkit) or `Extension` (VisualStudio.Extensibility). The synchronous `Package.Initialize()` method blocks the UI thread and can cause a "Visual Studio is not responding" dialog on startup.
+> **Do NOT** use synchronous `Package` — use `AsyncPackage` (VSSDK/Toolkit) or `Extension` (Extensibility). Sync `Package.Initialize()` blocks the UI thread.
 
-> **Do NOT** share mutable state through a global service without synchronization. If multiple components call your service concurrently, protect shared state with locks, `SemaphoreSlim`, or immutable data structures.
+> **Do NOT** share mutable state through a global service without synchronization — protect with locks, `SemaphoreSlim`, or immutable data.
 
 ## See also
 
-- [handling-extension-errors](../handling-extension-errors/SKILL.md) — logging exceptions using `SVsActivityLog` and other VS services
-- [handling-async-threading](../handling-async-threading/SKILL.md) — correct async patterns for consuming services without deadlocks
-- [adding-options-settings](../adding-options-settings/SKILL.md) — storing extension settings via the VS settings service
-- [handling-solution-events](../handling-solution-events/SKILL.md) — consuming `SVsSolution` to listen for solution lifecycle events
-- [handling-build-events](../handling-build-events/SKILL.md) — consuming `SVsSolutionBuildManager` to react to build events
+- [handling-extension-errors](../handling-extension-errors/SKILL.md)
+- [handling-async-threading](../handling-async-threading/SKILL.md)
+- [adding-options-settings](../adding-options-settings/SKILL.md)
+- [handling-solution-events](../handling-solution-events/SKILL.md)
+- [handling-build-events](../handling-build-events/SKILL.md)
 
 ## References
 

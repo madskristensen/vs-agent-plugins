@@ -337,22 +337,22 @@ You'll also need a tagger that produces `MyGlyphTag` spans — see the **vs-edit
 
 ## What NOT to do
 
-> **Do NOT** forget to clean up event subscriptions in `Dispose()`. Margins are created and destroyed as text views open and close. Leaked subscriptions (e.g., to `ITextBuffer.Changed`, `LayoutChanged`, or solution events) accumulate over time and cause memory leaks and stale callbacks.
+> **Do NOT** forget to clean up event subscriptions in `Dispose()` — margins are created/destroyed as views open/close. Leaked subscriptions cause memory leaks.
 
-> **Do NOT** forget to set `Height` (for bottom/top margins) or `Width` (for left/right margins) on your margin control. Without explicit sizing, the margin may render with zero size and be invisible to the user.
+> **Do NOT** forget to set `Height` (bottom/top) or `Width` (left/right) on your margin control — without explicit sizing, the margin renders with zero size.
 
-> **Do NOT** use the wrong `[MarginContainer]` attribute value. Use `PredefinedMarginNames.Bottom`, `PredefinedMarginNames.Top`, `PredefinedMarginNames.Left`, or `PredefinedMarginNames.Right`. A typo or wrong container name causes the margin to silently not appear.
+> **Do NOT** use the wrong `[MarginContainer]` value — a typo or wrong `PredefinedMarginNames` constant causes the margin to silently not appear.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for the VSSDK/Toolkit in-process approach. Without it, the margin provider is silently ignored. Note: this is **not** required for the VisualStudio.Extensibility out-of-process approach.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for VSSDK/Toolkit. Not required for VisualStudio.Extensibility.
 
-> **Do NOT** do heavy work in the margin constructor or in response to every `LayoutChanged` event. Margins are part of the editor rendering pipeline — slow margins cause visible lag when scrolling and editing.
+> **Do NOT** do heavy work in the margin constructor or `LayoutChanged` handler — slow margins cause visible lag when scrolling and editing.
 
 ## See also
 
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — visual overlays as an alternative to margins
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers provide the data that glyph margins render
-- [vs-editor-text-view-listener](../listening-text-view-events/SKILL.md) — the text view creation pattern used by margin providers
-- [vs-theming](../theming-extension-ui/SKILL.md) — theme-aware colors and brushes in margin UI
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-text-view-listener](../listening-text-view-events/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)
 
 ## References
 

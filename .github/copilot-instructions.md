@@ -15,12 +15,12 @@ If a particular approach does not apply to a skill's topic, explicitly state tha
 Each `SKILL.md` follows this section order:
 
 1. **Frontmatter** — YAML with `name` and `description` (used for agent skill matching).
-2. **H1 heading + enriched introduction** — A concise definition of the concept, followed by 2-4 sentences explaining *why* this matters (the problem it solves, consequences of not doing it, architectural reasoning). End the intro with a **"When to use this vs. alternatives"** bulleted list that cross-references related skills by relative path (e.g., `[vs-commands](../vs-commands/SKILL.md)`).
+2. **H1 heading + enriched introduction** — A concise definition of the concept, followed by 1-2 sentences explaining *why* this matters (the problem it solves, consequences of not doing it). Do not restate information that is already covered in the approach section headings or subsequent tables. End the intro with a **"When to use this vs. alternatives"** bulleted list that cross-references related skills by relative path (e.g., `[vs-commands](../vs-commands/SKILL.md)`).
 3. **Approach sections** — Numbered `## 1. VisualStudio.Extensibility`, `## 2. VSIX Community Toolkit`, `## 3. VSSDK` sections with working C# code examples, NuGet packages, and key namespaces for each approach.
 4. **Key guidance** — A short bulleted summary of best practices.
 5. **Troubleshooting** — 3-6 bullet points in **symptom → cause → fix** format covering common "it doesn't work" scenarios specific to the skill's topic.
-6. **What NOT to do** — Blockquote warnings (`> **Do NOT** ...`) calling out anti-patterns, deprecated APIs, and common mistakes.
-7. **See also** — Cross-references to related skills with a one-line explanation of the relationship. Format: `- [vs-foo](../vs-foo/SKILL.md) — reason this is related`.
+6. **What NOT to do** — Blockquote warnings (`> **Do NOT** ...`) calling out anti-patterns, deprecated APIs, and common mistakes. Keep each entry to one or two concise clauses using em-dashes — state what to avoid and why, not the full diagnostic walkthrough (that belongs in Troubleshooting).
+7. **See also** — Cross-references to related skills as bare links without descriptions (the intro's "When to use" list already explains each relationship). Format: `- [vs-foo](../vs-foo/SKILL.md)`.
 8. **References** — Links to official Microsoft Learn documentation.
 
 Additional requirements for each section:

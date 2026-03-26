@@ -267,20 +267,20 @@ if (textView.TextBuffer.Properties.TryGetProperty(
 
 ## What NOT to do
 
-> **Do NOT** do heavy work in the text view creation callback. It runs on the UI thread and blocks the editor from appearing. Offload initialization to a background thread.
+> **Do NOT** do heavy work in the text view creation callback — it runs on the UI thread and blocks the editor from appearing.
 
-> **Do NOT** forget the `[TextViewRole]` attribute. Without it, your listener triggers for every text view instance — including peek definition, diff views, and embedded editors — which may not be intended and wastes resources.
+> **Do NOT** forget the `[TextViewRole]` attribute — without it, your listener triggers for every text view instance (peek, diff, embedded), which may not be intended.
 
-> **Do NOT** forget to unsubscribe from events when the text view closes. Leaked subscriptions cause memory leaks and can crash when the recycled buffer triggers your stale handler.
+> **Do NOT** forget to unsubscribe from events when the text view closes — leaked subscriptions cause memory leaks and crashes.
 
 > **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for in-process extensions.
 
 ## See also
 
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — adornments initialized via text view listeners
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers that react to text changes
-- [vs-editor-margin](../adding-editor-margins/SKILL.md) — margins initialized per-editor
-- [vs-file-document-ops](../managing-files-documents/SKILL.md) — document lifecycle events
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-margin](../adding-editor-margins/SKILL.md)
+- [vs-file-document-ops](../managing-files-documents/SKILL.md)
 
 ## References
 

@@ -11,7 +11,7 @@ Completion sources provide IntelliSense auto-complete suggestions. Common scenar
 - Inject additional completion items into an existing language (e.g., custom snippets in C#)
 - Provide context-aware completions based on project state or external data
 
-IntelliSense is one of the most visible and frequently used editor features — developers trigger it dozens of times per session. A poorly performing completion source (slow, blocking the UI thread) is immediately noticeable. The modern async completion API (`IAsyncCompletionSourceProvider`) runs `GetCompletionContextAsync` on a background thread, making it safe for I/O and network calls. The legacy synchronous API runs on the UI thread and should not be used for new extensions.
+IntelliSense is one of the most visible and frequently used editor features — developers trigger it dozens of times per session. A poorly performing completion source is immediately noticeable.
 
 **When to use completion vs. alternatives:**
 - Auto-complete suggestions in the editor → **completion** (this skill)
@@ -323,22 +323,22 @@ internal sealed class CompletionTriggerHandler : ICommandHandler<TypeCharCommand
 
 ## What NOT to do
 
-> **Do NOT** use the legacy synchronous `ICompletionSourceProvider` / `ICompletionSource` API for new extensions targeting VS 2019+. Use the modern async `IAsyncCompletionSourceProvider` / `IAsyncCompletionSource` instead. The legacy API runs `AugmentCompletionSession` synchronously on the UI thread — any I/O, parsing, or network call will freeze the editor. Many old tutorials and walkthroughs still show the legacy API; do not follow them for new code.
+> **Do NOT** use the legacy synchronous `ICompletionSourceProvider`/`ICompletionSource` API for VS 2019+ — it runs on the UI thread and freezes the editor on I/O. Use `IAsyncCompletionSourceProvider`/`IAsyncCompletionSource`. Old tutorials still show the legacy API; do not follow them.
 
-> **Do NOT** do expensive work (file I/O, HTTP requests, large allocations) inside `GetCompletionContextAsync`. This method is called on every keystroke while the completion list is open. Pre-compute or cache data in `InitializeCompletion` or on a background thread triggered by document changes.
+> **Do NOT** do expensive work in `GetCompletionContextAsync` — it's called on every keystroke. Pre-compute or cache data in `InitializeCompletion` or via background threads.
 
-> **Do NOT** forget to return `CompletionStartData.DoesNotParticipateInCompletion` from `InitializeCompletion` when your source should not contribute to the current completion session. Returning items when you shouldn't adds unnecessary overhead and pollutes the completion list.
+> **Do NOT** forget to return `CompletionStartData.DoesNotParticipateInCompletion` from `InitializeCompletion` when your source shouldn't contribute — returning items adds overhead and pollutes the list.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, completion simply doesn't appear. This is the #1 cause of "my completion provider doesn't load."
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` — without it, your provider is silently ignored (#1 cause of "my completion doesn't load").
 
-> **Do NOT** omit the `[ContentType]` attribute on your provider. Without it, your completion source may activate for every file type in VS, causing unexpected items to appear in languages you didn't intend to support.
+> **Do NOT** omit the `[ContentType]` attribute — without it, your completion source may activate for every file type in VS.
 
 ## See also
 
-- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md) — hover tooltips that complement completion
-- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md) — code actions and quick fixes
-- [vs-language-server](../integrating-language-servers/SKILL.md) — LSP provides completion as part of a full language service
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers can provide context data that completion sources use
+- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md)
+- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md)
+- [vs-language-server](../integrating-language-servers/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
 
 ## References
 

@@ -7,7 +7,7 @@ description: Create dynamic menu items that change at runtime based on data in V
 
 Dynamic commands create menu items on the fly based on runtime data. Unlike regular commands that have a fixed set of buttons, dynamic commands generate one menu item per data item — perfect for "recent files" lists, open-document pickers, or any contextual menu that changes over time.
 
-Dynamic commands solve a fundamental UX problem: static menus can't represent variable-length data. A "Recent Files" list, a list of open documents, or a set of available configurations are all runtime-determined. Without dynamic commands, you'd have to pre-allocate a fixed number of hidden menu items and show/hide them — which is fragile and limits the list size. The `DynamicItemStart` VSCT flag and `BaseDynamicCommand` handle the plumbing of allocating command IDs from a range and matching them to data items.
+Dynamic commands solve a fundamental UX problem: static menus can't represent variable-length data. Without dynamic commands, you'd have to pre-allocate hidden menu items and show/hide them — which is fragile and limits list size.
 
 **When to use this vs. alternatives:**
 - Menu items generated from runtime data (lists, recent items) → **this skill**
@@ -247,18 +247,18 @@ However, you can achieve similar behavior by:
 
 ## What NOT to do
 
-> **Do NOT** pre-allocate fixed hidden commands as a substitute for dynamic commands. This approach is fragile, limits the list size, and wastes command ID space. Use `DynamicItemStart` and `BaseDynamicCommand` (Toolkit) or `OleMenuCommand` with `MatchedCommandId` (VSSDK) instead.
+> **Do NOT** pre-allocate fixed hidden commands as a substitute — use `DynamicItemStart` and `BaseDynamicCommand` (Toolkit) or `OleMenuCommand` with `MatchedCommandId` (VSSDK).
 
-> **Do NOT** use dynamic commands for very large lists (50+ items). Menus with many items are hard to navigate. Use a tool window with a searchable list or tree view instead.
+> **Do NOT** use dynamic commands for very large lists (50+ items) — use a tool window with a searchable list instead.
 
-> **Do NOT** use VisualStudio.Extensibility for dynamic menu items — it doesn't support `DynamicItemStart`. Use in-process Toolkit/VSSDK, or present dynamic items in a tool window.
+> **Do NOT** use VisualStudio.Extensibility for dynamic menu items — it doesn't support `DynamicItemStart`. Use in-process Toolkit/VSSDK, or present items in a tool window.
 
 ## See also
 
-- [vs-commands](../adding-commands/SKILL.md) — static command registration that dynamic commands extend
-- [vs-command-visibility](../controlling-command-visibility/SKILL.md) — showing/hiding the dynamic menu based on context
-- [vs-context-menu](../adding-context-menus/SKILL.md) — dynamic items can appear in context menus
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — better UX for large or variable-length dynamic lists
+- [vs-commands](../adding-commands/SKILL.md)
+- [vs-command-visibility](../controlling-command-visibility/SKILL.md)
+- [vs-context-menu](../adding-context-menus/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
 
 ## Additional resources
 

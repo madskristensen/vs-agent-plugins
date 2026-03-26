@@ -9,7 +9,7 @@ A tool window toolbar is a horizontal strip of command buttons docked at the top
 
 > **Critical rule:** The toolbar **must** be defined declaratively — in a `.vsct` file (VSSDK / Community Toolkit) or via `ToolbarConfiguration` (VisualStudio.Extensibility). **Never** add a WPF `<ToolBar>` or `<ToolBarTray>` element to the UserControl XAML loaded in the tool window. A WPF toolbar will not participate in the VS command system — it won't support keyboard shortcuts, key bindings, command routing, theming, or the standard toolbar overflow/chevron behavior that the native VS toolbar chrome provides.
 
-Tool window toolbars provide primary actions that are always visible without opening a context menu. They integrate with the VS command table (`.vsct` or `ToolbarConfiguration`), meaning buttons automatically get keyboard shortcuts, localization, theming, and accessibility. Using the VS-native toolbar instead of a WPF toolbar also ensures consistent visual behavior (overflow chevron, high DPI, theme changes).
+Tool window toolbars provide primary actions that are always visible without opening a context menu. They integrate with the VS command table, meaning buttons automatically get keyboard shortcuts, localization, theming, and accessibility.
 
 **When to use this vs. alternatives:**
 - Persistent action buttons at the top of a tool window → **Tool window toolbar** (this skill)
@@ -591,10 +591,10 @@ Always define the toolbar declaratively via `.vsct` or `ToolbarConfiguration`.
 
 ## See also
 
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — creating tool windows that host toolbars
-- [vs-tool-window-search](../adding-tool-window-search/SKILL.md) — adding search alongside the toolbar
-- [vs-commands](../adding-commands/SKILL.md) — command registration (toolbar buttons are commands)
-- [vs-context-menu](../adding-context-menus/SKILL.md) — right-click menus as an alternative to toolbar actions
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-tool-window-search](../adding-tool-window-search/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
+- [vs-context-menu](../adding-context-menus/SKILL.md)
 
 ## References
 

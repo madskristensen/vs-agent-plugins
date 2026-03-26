@@ -231,17 +231,17 @@ devenv.exe /MyExtHandler "myext://open/some-resource"
 
 ## What NOT to do
 
-> **Do NOT** use URI parameters directly in file paths, process arguments, or SQL queries. Protocol URIs come from untrusted external sources — always validate against an allowlist of actions and sanitize paths to prevent traversal attacks.
+> **Do NOT** use URI parameters directly in file paths, process arguments, or SQL queries — protocol URIs come from untrusted sources. Validate against an allowlist and sanitize paths.
 
-> **Do NOT** test protocol handlers using F5 debugging. The experimental hive doesn't register protocols with Windows. Install the VSIX in a regular VS instance.
+> **Do NOT** test protocol handlers using F5 debugging — the experimental hive doesn't register protocols with Windows. Install the VSIX in a regular VS instance.
 
-> **Do NOT** register generic protocol schemes that might conflict with other applications (e.g. `vs://`). Use a unique scheme that includes your extension name.
+> **Do NOT** register generic protocol schemes (e.g. `vs://`) — use a unique scheme that includes your extension name.
 
 ## See also
 
-- [vs-solution-events](../handling-solution-events/SKILL.md) — detecting solution/folder open events triggered by protocol links
-- [vs-file-document-ops](../managing-files-documents/SKILL.md) — opening files programmatically after protocol activation
-- [vs-commands](../adding-commands/SKILL.md) — executing commands from protocol handler code
+- [vs-solution-events](../handling-solution-events/SKILL.md)
+- [vs-file-document-ops](../managing-files-documents/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
 
 ## Related documentation
 

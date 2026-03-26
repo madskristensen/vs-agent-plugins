@@ -503,15 +503,15 @@ sink._cookie = cookie;
 
 ## What NOT to do
 
-> **Do NOT** use InfoBars for critical, blocking operations where the user **must** respond before continuing. Use a **message box** or **user prompt** instead. InfoBars are non-blocking by design — users can ignore them indefinitely.
+> **Do NOT** use InfoBars for critical blocking operations — use a message box or user prompt instead. InfoBars are non-blocking by design.
 
-> **Do NOT** stack multiple InfoBars in the same window. Users see at most three before the region becomes scrollable and new ones push old ones out of view. If you need to show multiple notifications, consolidate them into a single InfoBar with multiple action items, or dismiss the previous one before showing the next.
+> **Do NOT** stack multiple InfoBars in the same window — consolidate into one with multiple actions, or dismiss the previous one first.
 
-> **Do NOT** use a global (main window) InfoBar unless the notification is truly IDE-wide (e.g., extension update available). Global InfoBars cause layout shift in the main window and affect all users' workflows. Prefer attaching InfoBars to the specific tool window or document window where the notification is relevant.
+> **Do NOT** use a global (main window) InfoBar unless truly IDE-wide — it causes layout shift. Attach to the relevant tool/document window.
 
-> **Do NOT** forget to call `Unadvise` (VSSDK) or handle `OnClosed` (Toolkit) to clean up event subscriptions when the InfoBar is dismissed. Leaked event handlers accumulate memory and can cause exceptions when the InfoBar host is recycled.
+> **Do NOT** forget `Unadvise` (VSSDK) or `OnClosed` handling (Toolkit) — leaked event handlers accumulate memory.
 
-> **Do NOT** use `System.Diagnostics.Process.Start` for hyperlinks in InfoBar actions without validating the URL. InfoBar action text is user-visible but the URL you open should be a known, constant URL — never construct URLs from untrusted input.
+> **Do NOT** use `Process.Start` for InfoBar hyperlinks without validating the URL — never construct URLs from untrusted input.
 
 ## Troubleshooting
 
@@ -523,7 +523,7 @@ sink._cookie = cookie;
 
 ## See also
 
-- [vs-message-box](../showing-message-boxes/SKILL.md) — blocking notifications when infobars aren't sufficient
-- [vs-error-handling](../handling-extension-errors/SKILL.md) — logging and Output Window for non-UI notification
-- [vs-error-list](../integrating-error-list/SKILL.md) — error/warning entries with click-to-navigate
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — tool windows that host InfoBars
+- [vs-message-box](../showing-message-boxes/SKILL.md)
+- [vs-error-handling](../handling-extension-errors/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)

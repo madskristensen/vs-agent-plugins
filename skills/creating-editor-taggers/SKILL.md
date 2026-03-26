@@ -14,7 +14,7 @@ Common scenarios:
 - Mark text spans with colored highlights (text markers)
 - Provide structure tags for code block visualization
 
-Taggers are the lowest-level building block in the VS editor extensibility model — classifiers, adornments, margins, and even some light bulb features depend on tag data. A tagger's `GetTags` method runs on the UI thread during every render pass, making performance the primary concern. The pattern of "parse on a background thread, cache results, read from cache in `GetTags`" is essential.
+Taggers are the lowest-level building block in the VS editor extensibility model — classifiers, adornments, margins, and light bulb features depend on tag data. A tagger's `GetTags` runs on the UI thread during every render pass, making performance the primary concern.
 
 **When to use taggers vs. alternatives:**
 - Squiggly underlines for errors/warnings → **tagger** with `IErrorTag` (this skill) — or Roslyn `DiagnosticAnalyzer` for C#/VB
@@ -339,27 +339,27 @@ internal sealed class HighlightTagger : ITagger<TextMarkerTag>
 
 ## What NOT to do
 
-> **Do NOT** use custom `ITagger<IErrorTag>` taggers to produce diagnostic squiggles for C#, VB, or any language with Roslyn or LSP support. Use **Roslyn analyzers** (`DiagnosticAnalyzer` + `CodeFixProvider`) or **Language Server Protocol** (LSP `textDocument/publishDiagnostics`) instead. These approaches are architecturally correct, run out-of-process, integrate with the Error List, and support code fixes. Custom error taggers bypass all of that infrastructure.
+> **Do NOT** use custom `ITagger<IErrorTag>` for C#, VB, or languages with Roslyn/LSP support — use Roslyn analyzers or LSP `textDocument/publishDiagnostics` instead. They integrate with Error List and support code fixes.
 
-> **Do NOT** do parsing, regex matching, file I/O, or allocations inside `GetTags`. This method runs on the **UI thread during every scroll, edit, and layout pass**. Expensive work here causes visible jank and typing lag. Instead, parse on a background thread (e.g., triggered by `ITextBuffer.Changed`) and cache the results. `GetTags` should only read from the cache.
+> **Do NOT** do parsing, regex, file I/O, or allocations in `GetTags` — it runs on the UI thread every scroll/edit. Parse on a background thread and cache results; `GetTags` should only read from cache.
 
-> **Do NOT** fire `TagsChanged` for the entire document when only a few spans changed. Pass only the affected `SnapshotSpan` to the `TagsChanged` event — firing it for the whole buffer forces the editor to re-query and re-render all visible lines unnecessarily.
+> **Do NOT** fire `TagsChanged` for the entire document when only a few spans changed — pass only the affected `SnapshotSpan` to avoid unnecessary re-rendering.
 
-> **Do NOT** forget to raise `TagsChanged` when your cached data updates. Without this event, the editor has no reason to re-query your tagger, and stale or missing squiggles/markers will remain on screen.
+> **Do NOT** forget to raise `TagsChanged` when cached data updates — without it, stale squiggles/markers remain on screen.
 
-> **Do NOT** forget the `[TagType]` or `[ContentType]` attribute on your `ITaggerProvider`. Missing attributes cause the tagger to **silently not load** for your target file type.
+> **Do NOT** forget `[TagType]` or `[ContentType]` on your `ITaggerProvider` — missing attributes cause silent load failure.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported tagger provider is **silently ignored** — no error, no log, tags simply don't appear.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` — without it, your tagger provider is silently ignored.
 
-> **Do NOT** confuse `ITaggerProvider` (buffer-level) with `IViewTaggerProvider` (view-level). Use `IViewTaggerProvider` only when your tagger needs access to the `ITextView` (e.g., for viewport-relative calculations). Using the wrong one can result in missing tags or unnecessary duplicate tagger instances.
+> **Do NOT** confuse `ITaggerProvider` (buffer-level) with `IViewTaggerProvider` (view-level) — use `IViewTaggerProvider` only when you need `ITextView` access.
 
 ## See also
 
-- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md) — classifiers built on the tagger infrastructure
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — adornments that visualize tagged spans
-- [vs-editor-margin](../adding-editor-margins/SKILL.md) — glyph margins that render icons for tagged spans
-- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md) — light bulb actions paired with diagnostic tags
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing tagged errors in the Error List
+- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md)
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
+- [vs-editor-margin](../adding-editor-margins/SKILL.md)
+- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
 
 ## References
 

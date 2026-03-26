@@ -523,17 +523,17 @@ Use `Utilities.SetValue()` inside `ProvideSearchSettings` to configure:
 
 ## What NOT to do
 
-> **Do NOT** build a custom WPF `TextBox` for search in your tool window. The native `IVsWindowSearch` control handles MRU, keyboard navigation, progress, accessibility, and consistent styling for free.
+> **Do NOT** build a custom WPF `TextBox` for search — the native `IVsWindowSearch` control handles MRU, keyboard navigation, progress, accessibility, and styling for free.
 
-> **Do NOT** do heavy work synchronously in `CreateSearch()` or `ClearSearch()` — they run on the UI thread and will freeze VS. Offload work to the `VsSearchTask.OnStartSearch()` method which runs on a background thread.
+> **Do NOT** do heavy work synchronously in `CreateSearch()`/`ClearSearch()` — they run on the UI thread. Offload work to `VsSearchTask.OnStartSearch()` which runs on a background thread.
 
-> **Do NOT** forget to call `base.OnStartSearch()` at the end of your override. Without it, the search progress indicator never completes.
+> **Do NOT** forget to call `base.OnStartSearch()` at the end of your override — without it, the search progress indicator never completes.
 
 ## See also
 
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — creating the tool window that hosts the search bar
-- [vs-tool-window-toolbar](../adding-tool-window-toolbars/SKILL.md) — adding command toolbars alongside search
-- [vs-commands](../adding-commands/SKILL.md) — search option buttons are backed by VS commands
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-tool-window-toolbar](../adding-tool-window-toolbars/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
 
 ## References
 

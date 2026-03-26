@@ -7,7 +7,7 @@ description: Add custom CodeLens indicators that display inline information abov
 
 CodeLens indicators display inline information above code elements (classes, methods, properties) in the editor — references, tests, git history, etc. Extensions can add custom indicators that show any data and respond to clicks.
 
-CodeLens is one of the most visible integration points in VS — indicators appear directly in the code without requiring the developer to open a separate window. This makes them ideal for surfacing contextual metadata (ownership, test status, change frequency) at the point of relevance. The architecture is unique: the data provider runs **out-of-process** in a separate CodeLens service, while click handling and custom UI rendering run **in-process**. This split improves editor performance but requires a multi-project solution structure that trips up many first-time authors.
+CodeLens is one of the most visible integration points in VS — indicators appear directly in the code without requiring the developer to open a separate window, making them ideal for surfacing contextual metadata (ownership, test status, change frequency) at the point of relevance.
 
 **When to use CodeLens vs. alternatives:**
 - Inline metadata above code elements (methods, classes) → **CodeLens** (this skill)
@@ -583,10 +583,10 @@ The OOP CodeLens provider communicates with devenv.exe via **StreamJsonRpc**. Ve
 
 ## See also
 
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — visual decorations on the editor surface
-- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md) — hover tooltips for contextual information
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers that CodeLens providers may depend on for span identification
-- [vs-commands](../adding-commands/SKILL.md) — CodeLens navigation clicks are routed as VS commands
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
+- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
 
 ## Related documentation
 

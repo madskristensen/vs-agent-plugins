@@ -342,20 +342,20 @@ In the Remote UI XAML, standard WPF controls receive VS theme styling automatica
 
 ## What NOT to do
 
-> **Do NOT** hard-code hex colors (`#FF0000`), named brushes (`Brushes.White`), or `System.Drawing.Color` in WPF XAML or code-behind. Always use `EnvironmentColors`, `VsBrushes`, or `Themes.UseVsTheme`.
+> **Do NOT** hard-code hex colors, named brushes (`Brushes.White`), or `System.Drawing.Color` — use `EnvironmentColors`, `VsBrushes`, or `Themes.UseVsTheme`.
 
-> **Do NOT** use `{StaticResource}` for theme colors. Use `{DynamicResource}` so the UI updates when the user switches themes without restarting VS.
+> **Do NOT** use `{StaticResource}` for theme colors — use `{DynamicResource}` so UI updates on theme switch without restart.
 
-> **Do NOT** use `System.Windows.MessageBox` for dialogs — it doesn't parent to VS and won't be themed. Use `VS.MessageBox` (Toolkit) or `VsShellUtilities.ShowMessageBox` (VSSDK).
+> **Do NOT** use `System.Windows.MessageBox` for dialogs — not parented to VS and won't be themed. Use `VS.MessageBox` or `VsShellUtilities.ShowMessageBox`.
 
-> **Do NOT** test only in Light theme. Always verify your UI in Dark and High Contrast before publishing.
+> **Do NOT** test only in Light theme — always verify in Dark and High Contrast before publishing.
 
 ## See also
 
-- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md) — registering user-customizable color items
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — creating tool windows that use theming
-- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md) — classification colors integrated with the theme system
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — adornments that need theme-aware colors
+- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md)
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
 
 ## Additional resources
 

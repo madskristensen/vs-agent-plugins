@@ -328,21 +328,21 @@ commandEvents.AfterExecute += (string guid, int id, object customIn, object cust
 
 ## What NOT to do
 
-> **Do NOT** intercept commands when event listeners would suffice. Intercepting the Save command to react after save is more fragile than listening to `RunningDocumentTable` or `IDocumentEventsListener` document-saved events. Interception should be reserved for canceling or replacing command behavior.
+> **Do NOT** intercept commands when event listeners suffice — e.g., `IDocumentEventsListener` for post-save is less fragile than intercepting Save. Reserve interception for canceling or replacing behavior.
 
-> **Do NOT** do slow work in a before-execution interceptor. It runs synchronously on the UI thread for every invocation of that command. If your validation takes more than a few milliseconds, move it to a background thread and show results asynchronously.
+> **Do NOT** do slow work in a before-execution interceptor — it runs synchronously on the UI thread for every invocation.
 
-> **Do NOT** forget to unregister priority command targets in `Dispose`. Leaked registrations cause callbacks into disposed objects, leading to crashes.
+> **Do NOT** forget to unregister priority command targets in `Dispose` — leaked registrations cause crashes on disposed objects.
 
-> **Do NOT** intercept commands in the VisualStudio.Extensibility model — it's not supported. Use event listeners (e.g., `IDocumentEventsListener`) as the out-of-process alternative.
+> **Do NOT** intercept commands in VisualStudio.Extensibility — not supported. Use event listeners (e.g., `IDocumentEventsListener`) instead.
 
 ## See also
 
-- [vs-commands](../adding-commands/SKILL.md) — creating new commands rather than intercepting existing ones
-- [vs-command-visibility](../controlling-command-visibility/SKILL.md) — controlling when commands appear
-- [vs-build-events](../handling-build-events/SKILL.md) — event-based alternative to intercepting Build commands
-- [vs-file-document-ops](../managing-files-documents/SKILL.md) — event-based alternative to intercepting Save commands
-- [vs-async-threading](../handling-async-threading/SKILL.md) — keeping interceptors fast with proper async patterns
+- [vs-commands](../adding-commands/SKILL.md)
+- [vs-command-visibility](../controlling-command-visibility/SKILL.md)
+- [vs-build-events](../handling-build-events/SKILL.md)
+- [vs-file-document-ops](../managing-files-documents/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
 
 ## References
 

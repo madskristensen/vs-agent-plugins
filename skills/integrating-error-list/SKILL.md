@@ -305,10 +305,10 @@ If you need Error List support from an out-of-process extension, your options ar
 
 ## See also
 
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — inline squiggles that complement Error List entries
-- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md) — code fixes for Error List diagnostics
-- [vs-error-handling](../handling-extension-errors/SKILL.md) — logging and Output Window for non-diagnostic errors
-- [vs-build-events](../handling-build-events/SKILL.md) — surfacing build errors in the Error List
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md)
+- [vs-error-handling](../handling-extension-errors/SKILL.md)
+- [vs-build-events](../handling-build-events/SKILL.md)
 
 - [VSIX Cookbook — Error List integration](https://www.vsixcookbook.com/recipes/error-list.html)
 - [ErrorListProvider class reference](https://learn.microsoft.com/dotnet/api/microsoft.visualstudio.shell.errorlistprovider)

@@ -481,15 +481,15 @@ private void OnAfterOpenProject(IVsHierarchy hierarchy)
 
 ## What NOT to do
 
-> **Do NOT** enumerate all projects in `OnAfterOpenSolution`. At this point, background-loaded projects may still be loading. Use `OnAfterBackgroundSolutionLoadComplete` instead — it fires only after **all** projects (including deferred/lazy ones) have finished loading.
+> **Do NOT** enumerate all projects in `OnAfterOpenSolution` — background-loaded projects may still be loading. Use `OnAfterBackgroundSolutionLoadComplete` instead.
 
-> **Do NOT** do heavy or long-running work directly inside solution event handlers. These handlers run on the **UI thread**. Expensive file scanning, HTTP requests, or analysis will freeze the IDE. Offload work to a background task using `JoinableTaskFactory.RunAsync` or `Task.Run`, and capture only the data you need from the event arguments first.
+> **Do NOT** do heavy work in solution event handlers — they run on the UI thread. Offload with `JoinableTaskFactory.RunAsync` or `Task.Run`; capture event data first.
 
-> **Do NOT** forget to unsubscribe from events or call `UnadviseSolutionEvents` in your package's `Dispose`. Leaked event subscriptions cause memory leaks that grow with every solution open/close cycle and can lead to exceptions on stale references.
+> **Do NOT** forget to unsubscribe or call `UnadviseSolutionEvents` in `Dispose` — leaked subscriptions cause memory leaks and stale-reference exceptions.
 
-> **Do NOT** implement `IVsSolutionEvents` directly when you only need basic open/close/rename events. Use `VS.Events.SolutionEvents` (Toolkit) or `Microsoft.VisualStudio.Shell.Events.SolutionEvents` (VSSDK static events) — they're simpler and less error-prone. Implement `IVsSolutionEvents` only when you need to **cancel** operations via `OnQueryCloseSolution` / `OnQueryCloseProject`.
+> **Do NOT** implement `IVsSolutionEvents` directly when you only need basic open/close/rename — use `VS.Events.SolutionEvents` (Toolkit) or `Microsoft.VisualStudio.Shell.Events.SolutionEvents` (VSSDK). Only implement the interface when you need to cancel operations.
 
-> **Do NOT** use `EnvDTE.Events.SolutionEvents` from the legacy DTE automation model. It requires storing a strong field reference to the event object (or COM GC silently stops delivering events), and the DTE model is deprecated for new extensions.
+> **Do NOT** use `EnvDTE.Events.SolutionEvents` — requires storing a strong field reference (or COM GC stops events), and the DTE model is deprecated.
 
 ## Troubleshooting
 
@@ -501,11 +501,11 @@ private void OnAfterOpenProject(IVsHierarchy hierarchy)
 
 ## See also
 
-- [vs-solution-explorer](../interacting-solution-explorer/SKILL.md) — querying projects and items after solution load
-- [vs-build-events](../handling-build-events/SKILL.md) — reacting to build lifecycle events
-- [vs-file-document-ops](../managing-files-documents/SKILL.md) — file-level open/save/close events
-- [vs-open-folder](../extending-open-folder/SKILL.md) — workspace events when no solution is present
-- [vs-background-tasks-progress](../showing-background-progress/SKILL.md) — offloading heavy work triggered by solution events
+- [vs-solution-explorer](../interacting-solution-explorer/SKILL.md)
+- [vs-build-events](../handling-build-events/SKILL.md)
+- [vs-file-document-ops](../managing-files-documents/SKILL.md)
+- [vs-open-folder](../extending-open-folder/SKILL.md)
+- [vs-background-tasks-progress](../showing-background-progress/SKILL.md)
 
 ## References
 

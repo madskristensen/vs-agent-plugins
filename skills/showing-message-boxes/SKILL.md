@@ -14,7 +14,7 @@ Visual Studio provides multiple notification mechanisms. Choose the right one ba
 | **Message box / User prompt** | Blocking — user must acknowledge or choose before continuing |
 | **Output window** | Informational logging — user can review at their leisure |
 
-Using the VS-native notification APIs matters because they handle window parenting, theming, focus management, and threading automatically — raw WPF or WinForms dialogs do none of this and can appear behind the IDE or break input focus. The out-of-process `ShowPromptAsync` API (VisualStudio.Extensibility) runs in a separate process, so a bug in your prompt logic can't freeze or crash VS. Info bars are the right default for most extension notifications — they persist without stealing focus, while message boxes should be reserved for decisions the user must make before continuing.
+Using the VS-native APIs matters because they handle window parenting, theming, focus management, and threading automatically — raw WPF or WinForms dialogs do none of this and can appear behind the IDE or break input focus.
 
 **When to use this vs. alternatives:**
 - User must decide before continuing (save/discard, confirm delete) → message box / `ShowPromptAsync`
@@ -272,23 +272,23 @@ statusBar.SetText("Operation completed successfully.");
 
 ## What NOT to do
 
-> **Do NOT** use `System.Windows.MessageBox` or `System.Windows.Forms.MessageBox` anywhere in a Visual Studio extension. They are not parented to the VS main window — the dialog can appear behind VS, is not themed, and doesn't respect the VS input focus model. Use `VS.MessageBox.ShowAsync` (Toolkit), `VsShellUtilities.ShowMessageBox` (VSSDK), or `ShowPromptAsync` (Extensibility).
+> **Do NOT** use `System.Windows.MessageBox` or `System.Windows.Forms.MessageBox` — not parented to VS, can appear behind IDE, not themed. Use `VS.MessageBox.ShowAsync` (Toolkit), `VsShellUtilities.ShowMessageBox` (VSSDK), or `ShowPromptAsync` (Extensibility).
 
-> **Do NOT** show message boxes from a background thread without first switching to the UI thread. For the Toolkit, use `VS.MessageBox.ShowAsync` (which handles thread switching). For VSSDK, call `await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()` before calling `VsShellUtilities.ShowMessageBox`.
+> **Do NOT** show message boxes from a background thread without switching to UI thread first — use `VS.MessageBox.ShowAsync` (Toolkit, handles thread switching) or `SwitchToMainThreadAsync()` before `VsShellUtilities.ShowMessageBox` (VSSDK).
 
-> **Do NOT** show message boxes during solution load, package initialization, or any unattended operation. Users haven't initiated an action yet and a blocking dialog is unexpected. Use an **InfoBar** (non-blocking) for notifications that arise from background activity.
+> **Do NOT** show message boxes during solution load, package init, or unattended operations — use an InfoBar instead for background-triggered notifications.
 
-> **Do NOT** display raw exception messages or stack traces in user-facing message boxes. They may contain sensitive file paths, internal type names, or user data. Log the full exception to the Output Window or ActivityLog, and show a user-friendly summary with a "View details" link instead.
+> **Do NOT** display raw exception messages in user-facing message boxes — log the full exception; show a user-friendly summary.
 
-> **Do NOT** use more than 3 choices in a prompt. The `VisualStudio.Extensibility` prompt API enforces this limit. If you need more options, use a custom dialog or tool window instead.
+> **Do NOT** use more than 3 choices in a prompt — the Extensibility API enforces this limit. Use a custom dialog for more options.
 
 ## See also
 
-- [vs-error-handling](../handling-extension-errors/SKILL.md) — log exceptions before notifying the user
-- [vs-async-threading](../handling-async-threading/SKILL.md) — thread-switching required before showing UI from background threads
-- [vs-background-tasks-progress](../showing-background-progress/SKILL.md) — progress notifications for long-running operations
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — when a prompt isn't enough and you need a full interactive UI
-- [vs-info-bar](../showing-info-bars/SKILL.md) — non-blocking notification pattern
+- [vs-error-handling](../handling-extension-errors/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-background-tasks-progress](../showing-background-progress/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-info-bar](../showing-info-bars/SKILL.md)
 
 ## References
 

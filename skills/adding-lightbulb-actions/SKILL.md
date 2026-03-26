@@ -12,7 +12,7 @@ Light bulb actions appear when the user clicks the light bulb icon or presses Ct
 - Suggest code generation based on context
 - Add custom actions to the existing light bulb menu
 
-The light bulb is VS's primary mechanism for presenting actionable code suggestions at the cursor position. It's the standard UX for "something can be improved here" — users learn to look for it and press Ctrl+. as a reflex. For C#/VB, Roslyn's `CodeFixProvider` and `CodeRefactoringProvider` are preferred because they integrate with the analyzer pipeline. For other languages or non-Roslyn scenarios, the MEF-based `ISuggestedAction` API is the way to contribute actions.
+The light bulb is VS's primary mechanism for presenting actionable code suggestions at the cursor position — users learn to press Ctrl+. as a reflex.
 
 **When to use light bulb actions vs. alternatives:**
 - Actionable code fix or refactoring at the cursor → **light bulb** (this skill)
@@ -354,20 +354,20 @@ Set `HasActionSets => true` on the parent action.
 
 ## What NOT to do
 
-> **Do NOT** do expensive work in `HasSuggestedActionsAsync`. It runs on every caret movement and keystroke. Pre-compute action availability on a background thread and return a cached result.
+> **Do NOT** do expensive work in `HasSuggestedActionsAsync` — it runs on every caret movement. Pre-compute availability on a background thread and return a cached result.
 
-> **Do NOT** use the `ISuggestedAction` MEF API for C#/VB code fixes when Roslyn `CodeFixProvider` / `CodeRefactoringProvider` is available. Roslyn providers integrate with the analyzer pipeline, support preview, and work with `FixAll` automatically.
+> **Do NOT** use the `ISuggestedAction` MEF API for C#/VB when Roslyn `CodeFixProvider`/`CodeRefactoringProvider` is available — Roslyn providers integrate with the analyzer pipeline and support `FixAll` automatically.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your suggested actions provider is silently ignored.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` — without it, your suggested actions provider is silently ignored.
 
-> **Do NOT** forget to implement `IDisposable` on your `ISuggestedActionsSource`. VS creates and disposes sources as the caret moves; leaked sources accumulate memory.
+> **Do NOT** forget to implement `IDisposable` on your `ISuggestedActionsSource` — VS creates and disposes sources as the caret moves; leaked sources accumulate memory.
 
 ## See also
 
-- [vs-editor-suggested-actions](../adding-suggested-actions/SKILL.md) — the complementary skill covering the `ISuggestedAction` interface in detail
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers that produce diagnostic squiggles light bulbs can fix
-- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md) — hover tooltips as complementary information
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing diagnostics in the Error List alongside light bulb fixes
+- [vs-editor-suggested-actions](../adding-suggested-actions/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
 
 ## References
 

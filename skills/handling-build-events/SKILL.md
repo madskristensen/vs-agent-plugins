@@ -7,7 +7,7 @@ description: Subscribe to and handle build events in Visual Studio extensions. U
 
 When your extension needs to react to solution or project builds — for example, running analysis after a successful build, showing a notification on failure, or tracking build timing — you need to subscribe to build events. Visual Studio provides multiple mechanisms across its extensibility models.
 
-Build events let extensions integrate into the development feedback loop — the moment code compiles, your extension can validate output, update UI, or trigger downstream processes. Without them, extensions must poll for build state, which is both wasteful and unreliable. The critical nuance is that build event handlers run on the UI thread, so long-running work in an event handler freezes the entire IDE.
+Build events let extensions integrate into the development feedback loop — the moment code compiles, your extension can validate output, update UI, or trigger downstream processes. The critical nuance is that build event handlers run on the UI thread, so long-running work freezes the IDE.
 
 **When to use this vs. alternatives:**
 - React to build start, completion, or failure → **this skill**
@@ -383,18 +383,18 @@ public sealed class MyPackage : AsyncPackage
 
 ## What NOT to do
 
-> **Do NOT** perform long-running work synchronously in build event handlers. They run on the UI thread — blocking causes the IDE to freeze. Queue background work with `JoinableTaskFactory.RunAsync` and return from the handler immediately.
+> **Do NOT** perform long-running work synchronously in build event handlers — they run on the UI thread. Queue background work with `JoinableTaskFactory.RunAsync` and return immediately.
 
-> **Do NOT** use `EnvDTE.BuildEvents` in new extensions. It's a legacy COM automation API that requires careful reference management (COM garbage collection) and doesn't integrate with the modern threading model. Use `VS.Events.BuildEvents` (Toolkit) or `IVsUpdateSolutionEvents2` (VSSDK).
+> **Do NOT** use `EnvDTE.BuildEvents` — legacy COM API that doesn't integrate with the modern threading model. Use `VS.Events.BuildEvents` (Toolkit) or `IVsUpdateSolutionEvents2` (VSSDK).
 
-> **Do NOT** forget to unsubscribe from build events (`UnadviseUpdateSolutionEvents`) when your package is disposed. Leaked event subscriptions cause memory leaks and can crash if the callback fires after your objects are disposed.
+> **Do NOT** forget to unsubscribe (`UnadviseUpdateSolutionEvents`) when your package is disposed — leaked subscriptions cause memory leaks and crashes.
 
-> **Do NOT** hold only a local reference to DTE event objects. The COM runtime will garbage-collect the event sink, causing events to silently stop firing. Store the event object in a class-level field.
+> **Do NOT** hold only a local reference to DTE event objects — COM GC silently stops delivering events. Store in a class-level field.
 
 ## See also
 
-- [vs-solution-events](../handling-solution-events/SKILL.md) — solution/project lifecycle events (open, close, rename)
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing build errors in the Error List
-- [vs-command-intercept](../intercepting-commands/SKILL.md) — intercepting the Build command before it executes
-- [vs-async-threading](../handling-async-threading/SKILL.md) — proper async patterns in event handlers
-- [vs-background-tasks-progress](../showing-background-progress/SKILL.md) — showing progress during build-related work
+- [vs-solution-events](../handling-solution-events/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
+- [vs-command-intercept](../intercepting-commands/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-background-tasks-progress](../showing-background-progress/SKILL.md)

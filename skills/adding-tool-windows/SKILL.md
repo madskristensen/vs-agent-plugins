@@ -7,7 +7,7 @@ description: Create and show tool windows in Visual Studio extensions. Use when 
 
 A tool window is a dockable panel in Visual Studio (like Solution Explorer or Error List). It consists of an outer shell managed by VS and custom content provided by your extension.
 
-Tool windows give extensions a persistent, dockable surface whose position, visibility, and dock state VS saves automatically across sessions. Without them, interactive extensions are limited to transient dialogs or output text. The out-of-process model (VisualStudio.Extensibility) renders tool window UI via Remote UI in a separate process, so a crash in your extension can't take down the IDE. The in-process models (Toolkit / VSSDK) use standard WPF `UserControl`s rendered directly in the VS shell.
+Tool windows give extensions a persistent, dockable surface whose position, visibility, and dock state VS saves automatically across sessions. Without them, interactive extensions are limited to transient dialogs or output text.
 
 **When to use a tool window vs. alternatives:**
 - Persistent UI the user returns to repeatedly → **tool window**
@@ -483,27 +483,27 @@ public sealed class MyPackage : AsyncPackage
 
 ## What NOT to do
 
-> **Do NOT** do slow or async work in the `ToolWindowPane` constructor (VSSDK) or the `Pane` constructor (Community Toolkit). These constructors run on the UI thread and will freeze Visual Studio. For VSSDK, do async work in `AsyncPackage.InitializeAsync`, then call `SwitchToMainThreadAsync` before setting `Content`. For the Community Toolkit, do async work in `CreateAsync`.
+> **Do NOT** do slow or async work in the `ToolWindowPane` constructor (VSSDK) or `Pane` constructor (Toolkit) — they run on the UI thread and freeze VS. Use `InitializeAsync` (VSSDK) or `CreateAsync` (Toolkit) instead.
 
-> **Do NOT** use the synchronous `Package` base class for tool windows. Always use `AsyncPackage` with `AllowsBackgroundLoading = true` (VSSDK) or `ToolkitPackage` (Community Toolkit). The synchronous `Package` class forces Visual Studio to load your extension on the UI thread at startup, degrading IDE launch time.
+> **Do NOT** use synchronous `Package` — use `AsyncPackage` with `AllowsBackgroundLoading = true` (VSSDK) or `ToolkitPackage` (Toolkit). Sync packages degrade IDE launch time.
 
-> **Do NOT** create WPF controls on a background thread. WPF requires all UI objects to be created on the UI thread. If you create controls before calling `SwitchToMainThreadAsync`, you'll get `InvalidOperationException` or silent rendering failures.
+> **Do NOT** create WPF controls on a background thread — WPF requires the UI thread. Creating controls before `SwitchToMainThreadAsync` causes `InvalidOperationException`.
 
-> **Do NOT** set `ToolWindowPane.Content` to a `FrameworkElement` that was created with inline async calls in its constructor. The WPF control constructor should be synchronous and fast — pass pre-loaded data into it as constructor parameters.
+> **Do NOT** set `ToolWindowPane.Content` to a `FrameworkElement` with inline async calls in its constructor — the WPF constructor should be synchronous and fast.
 
-> **Do NOT** block the UI thread with `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` inside tool window initialization or event handlers. Use `async`/`await` with `JoinableTaskFactory` for all async work in in-process extensions.
+> **Do NOT** block the UI thread with `.Result`/`.Wait()`/`.GetAwaiter().GetResult()` in tool window initialization — use `async`/`await` with `JoinableTaskFactory`.
 
-> **Do NOT** forget to `Dispose` your `RemoteUserControl` (VisualStudio.Extensibility) or unsubscribe from events in your WPF `UserControl`. Undisposed tool window content causes memory leaks that accumulate every time the tool window is opened and closed.
+> **Do NOT** forget to `Dispose` your `RemoteUserControl` (Extensibility) or unsubscribe from events in WPF `UserControl` — undisposed content causes memory leaks.
 
-> **Do NOT** use `ToolWindowPane` with the older `Package.FindToolWindow` (synchronous). Use `AsyncPackage` and the async initialization pattern shown in this skill. Old VSSDK templates and tutorials may still show the synchronous pattern — do not follow them.
+> **Do NOT** use `ToolWindowPane` with the older synchronous `Package.FindToolWindow` — use `AsyncPackage` and async initialization. Old templates may show the sync pattern; do not follow them.
 
 ## See also
 
-- [vs-commands](../adding-commands/SKILL.md) — every tool window needs a command to open it
-- [vs-async-threading](../handling-async-threading/SKILL.md) — async initialization patterns for tool window content
-- [vs-theming](../theming-extension-ui/SKILL.md) — respecting VS themes (Dark, Light, High Contrast) in tool window UI
-- [vs-tool-window-toolbar](../adding-tool-window-toolbars/SKILL.md) — adding a toolbar to the tool window frame
-- [vs-tool-window-search](../adding-tool-window-search/SKILL.md) — adding a search box to the tool window frame
+- [vs-commands](../adding-commands/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)
+- [vs-tool-window-toolbar](../adding-tool-window-toolbars/SKILL.md)
+- [vs-tool-window-search](../adding-tool-window-search/SKILL.md)
 
 ## References
 

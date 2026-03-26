@@ -412,18 +412,18 @@ TextMate grammars work in Open Folder out of the box. If colorization isn't appe
 
 ## What NOT to do
 
-> **Do NOT** assume a solution is loaded. In Open Folder mode, `IVsSolution` reports no projects. Guard against null project references in any shared code.
+> **Do NOT** assume a solution is loaded — in Open Folder mode, `IVsSolution` reports no projects. Guard against null project references.
 
-> **Do NOT** use `ProvideAutoLoad` with `SolutionExists` UI context for Open Folder features. Use the Open Folder UI context GUID (`4646B819-1AE0-4E79-97F4-8A8176FDD664`) instead.
+> **Do NOT** use `ProvideAutoLoad` with `SolutionExists` for Open Folder features — use the Open Folder UI context GUID (`4646B819-1AE0-4E79-97F4-8A8176FDD664`).
 
-> **Do NOT** block the UI thread in file scanners or context providers. These run during indexing and will freeze VS if synchronous. Always use `async Task` implementations.
+> **Do NOT** block the UI thread in file scanners or context providers — they run during indexing. Always use `async Task` implementations.
 
 ## See also
 
-- [vs-language-server](../integrating-language-servers/SKILL.md) — full language support (completion, diagnostics) for open-folder languages
-- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md) — syntax highlighting for custom file types in Open Folder
-- [vs-solution-events](../handling-solution-events/SKILL.md) — detecting solution vs. folder open/close
-- [vs-context-menu](../adding-context-menus/SKILL.md) — context menus in Solution Explorer (project-based)
+- [vs-language-server](../integrating-language-servers/SKILL.md)
+- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md)
+- [vs-solution-events](../handling-solution-events/SKILL.md)
+- [vs-context-menu](../adding-context-menus/SKILL.md)
 
 ## Related documentation
 

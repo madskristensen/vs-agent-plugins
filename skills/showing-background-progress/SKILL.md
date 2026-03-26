@@ -451,22 +451,22 @@ protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
 
 ## What NOT to do
 
-> **Do NOT** use `Thread.Sleep()` or synchronous blocking waits during long operations. They freeze the UI thread completely. Use `await Task.Delay()` and `async`/`await` patterns instead.
+> **Do NOT** use `Thread.Sleep()` or synchronous blocking waits — they freeze the UI thread. Use `await Task.Delay()` and async patterns.
 
-> **Do NOT** use the Threaded Wait Dialog for operations the user didn't explicitly trigger. It's a semi-blocking modal — appropriate only when the user initiated an action and must wait for it to complete (e.g., "Apply refactoring"). For background tasks, use the **Task Status Center** which is non-blocking.
+> **Do NOT** use the Threaded Wait Dialog for operations the user didn't trigger — it's semi-blocking modal. For background tasks, use the Task Status Center.
 
-> **Do NOT** show status bar progress for operations that take more than ~10 seconds. The status bar is easy to miss and provides no cancellation support. Use the **Task Status Center** instead — it's visible, supports cancellation, and persists the result.
+> **Do NOT** show status bar progress for operations >10 seconds — the status bar is easy to miss and has no cancellation. Use the Task Status Center.
 
-> **Do NOT** forget to support cancellation for any operation that takes more than a few seconds. Always pass `CancellationToken` through your call chain and check it between steps. Users expect to be able to cancel long-running operations.
+> **Do NOT** forget cancellation support for any operation >a few seconds — always pass `CancellationToken` through the call chain.
 
-> **Do NOT** silently swallow task failures. Use `CompletionActions.RetainOnFaulted` with the Task Status Center so failed tasks remain visible and the user can see what went wrong.
+> **Do NOT** silently swallow task failures — use `CompletionActions.RetainOnFaulted` so failed tasks remain visible.
 
 ## See also
 
-- [vs-async-threading](../handling-async-threading/SKILL.md) — async/await patterns required for non-blocking progress
-- [vs-message-box](../showing-message-boxes/SKILL.md) — notifying the user after an operation completes or fails
-- [vs-error-handling](../handling-extension-errors/SKILL.md) — logging errors from background tasks
-- [vs-commands](../adding-commands/SKILL.md) — commands are the most common entry point that triggers background work
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-message-box](../showing-message-boxes/SKILL.md)
+- [vs-error-handling](../handling-extension-errors/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
 
 ## References
 

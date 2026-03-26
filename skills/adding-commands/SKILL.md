@@ -7,7 +7,7 @@ description: Add commands (menu items, toolbar buttons) to Visual Studio extensi
 
 A command is any user-invokable action — menu items, toolbar buttons, context menu entries, keyboard shortcuts. Each command has an ID, a display name, an optional icon, a placement (where it appears in the UI), and an execution handler.
 
-Commands are the primary way users interact with an extension. Without a command, your extension has no entry point — the user can't trigger it. In the VisualStudio.Extensibility model, commands are fully self-contained (placement, icon, and metadata are declared in code), eliminating the `.vsct` XML file that Toolkit and VSSDK extensions require. The `.vsct` approach gives finer control over placement and menu merging but is harder to author and debug.
+Commands are the primary way users interact with an extension — without one, your extension has no entry point.
 
 **When to use this vs. alternatives:**
 - Add an action to a menu, toolbar, or context menu → **this skill**
@@ -554,24 +554,24 @@ commandService.AddCommand(menuItem);
 
 ## What NOT to do
 
-> **Do NOT** do heavy or long-running work inside the command's `Execute` or `ExecuteCommandAsync` handler on the UI thread. Offload to a background thread with `Task.Run` or `await TaskScheduler.Default`, then switch back to the UI thread only when needed. See [vs-async-threading](../handling-async-threading/SKILL.md).
+> **Do NOT** do heavy work in `Execute`/`ExecuteCommandAsync` on the UI thread — offload with `Task.Run` or `await TaskScheduler.Default`. See [vs-async-threading](../handling-async-threading/SKILL.md).
 
-> **Do NOT** forget `[ProvideMenuResource("Menus.ctmenu", 1)]` on the package class (Toolkit/VSSDK). Without it, Visual Studio never loads the command table and all your buttons silently fail to appear.
+> **Do NOT** forget `[ProvideMenuResource("Menus.ctmenu", 1)]` on the package class (Toolkit/VSSDK) — without it, all buttons silently fail to appear.
 
-> **Do NOT** reuse GUID + ID pairs across commands. Each command needs a unique `CommandID`. Duplicates cause an exception at startup and neither command will work.
+> **Do NOT** reuse GUID + ID pairs across commands — duplicates cause a startup exception. Each command needs a unique `CommandID`.
 
-> **Do NOT** hard-code command GUIDs and IDs as inline strings in multiple places. Define them as constants in a shared class (or use the Toolkit's generated `PackageIds` / `PackageGuids` classes) to prevent mismatches.
+> **Do NOT** hard-code command GUIDs/IDs as inline strings. Use constants in a shared class or Toolkit's generated `PackageIds`/`PackageGuids`.
 
-> **Do NOT** use synchronous `Package` instead of `AsyncPackage` (VSSDK) or `ToolkitPackage` (Toolkit). Synchronous packages force VS to load your extension on the UI thread at startup, degrading IDE launch time.
+> **Do NOT** use synchronous `Package` — use `AsyncPackage` (VSSDK) or `ToolkitPackage` (Toolkit). Sync packages degrade IDE launch time.
 
 ## See also
 
-- [vs-context-menu](../adding-context-menus/SKILL.md) — adding commands to right-click context menus
-- [vs-command-visibility](../controlling-command-visibility/SKILL.md) — showing/hiding commands based on context
-- [vs-dynamic-commands](../creating-dynamic-commands/SKILL.md) — commands that change text or state dynamically
-- [vs-command-intercept](../intercepting-commands/SKILL.md) — intercepting built-in VS commands
-- [vs-async-threading](../handling-async-threading/SKILL.md) — async patterns for command execution handlers
-- [vs-error-handling](../handling-extension-errors/SKILL.md) — wrapping command handlers in try/catch
+- [vs-context-menu](../adding-context-menus/SKILL.md)
+- [vs-command-visibility](../controlling-command-visibility/SKILL.md)
+- [vs-dynamic-commands](../creating-dynamic-commands/SKILL.md)
+- [vs-command-intercept](../intercepting-commands/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-error-handling](../handling-extension-errors/SKILL.md)
 
 ## References
 

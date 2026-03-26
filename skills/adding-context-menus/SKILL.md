@@ -9,8 +9,6 @@ When you build custom WPF UI inside a Visual Studio extension (for example a tre
 
 Instead, define your context menus in VSCT (the same command table used for toolbars and main menu items), then show them programmatically from your WPF event handlers using `IVsUIShell.ShowContextMenu`.
 
-Native VS context menus are essential for a professional-feeling extension because they participate in the VS command system — keyboard shortcuts display correctly, `BeforeQueryStatus` enables/disables items dynamically, and the menu renders with the correct VS theme (Dark, Light, High Contrast). A WPF `ContextMenu` does none of this and looks visibly foreign to a VS user.
-
 **When to use this vs. alternatives:**
 - Right-click menu on custom WPF UI in a tool window → **this skill**
 - Adding commands to VS’s built-in context menus (Solution Explorer, editor) → [vs-commands](../adding-commands/SKILL.md) with appropriate parent groups
@@ -496,20 +494,20 @@ In VSCT, add `DynamicVisibility` and `DefaultInvisible` flags so the button star
 
 ## What NOT to do
 
-> **Do NOT** use WPF `ContextMenu` controls on tree views or custom controls inside tool windows. WPF context menus don't integrate with the VS command system — they won't support keyboard shortcuts, command routing, `BeforeQueryStatus` enable/disable, or VS theming. Use VSCT `type="Context"` menus shown via `IVsUIShell.ShowContextMenu` instead.
+> **Do NOT** use WPF `ContextMenu` controls in tool windows — they don't integrate with VS command routing, keyboard shortcuts, `BeforeQueryStatus`, or theming. Use VSCT `type="Context"` menus via `IVsUIShell.ShowContextMenu`.
 
-> **Do NOT** call `ShowContextMenu` without first calling `shell.UpdateCommandUI(1)`. Without this, `BeforeQueryStatus` handlers don't re-evaluate, and commands may show stale enabled/disabled/visible state from the previous invocation.
+> **Do NOT** call `ShowContextMenu` without first calling `shell.UpdateCommandUI(1)` — without it, `BeforeQueryStatus` handlers show stale state.
 
-> **Do NOT** rely on `SelectedItem` in `BeforeQueryStatus` to determine the right-clicked node. `SelectedItem` updates asynchronously and may not reflect the node under the cursor when `BeforeQueryStatus` runs. Instead, capture the right-clicked node in `PreviewMouseRightButtonDown` (synchronous, fires before query status) and store it in a field.
+> **Do NOT** rely on `SelectedItem` in `BeforeQueryStatus` for the right-clicked node — it updates asynchronously. Capture the node in `PreviewMouseRightButtonDown` (synchronous) and store it in a field.
 
-> **Do NOT** parent `<Button>` elements directly to a `<Menu>` in `.vsct`. Always create at least one `<Group>` as an intermediary — buttons parented directly to a menu will not appear. Groups also provide automatic separators between logical clusters of commands.
+> **Do NOT** parent `<Button>` elements directly to a `<Menu>` in `.vsct` — always use a `<Group>` intermediary. Buttons parented directly to a menu won't appear.
 
-> **Do NOT** forget to match the GUID in `ShowContextMenu` with the `guid` on the `<Menu>` element in your `.vsct` file. A mismatched GUID causes the menu to silently not appear, with no error message.
+> **Do NOT** mismatch the GUID in `ShowContextMenu` with the `<Menu>` element's `guid` in `.vsct` — causes the menu to silently not appear.
 
 ## See also
 
-- [vs-commands](../adding-commands/SKILL.md) — defining the command buttons that appear in context menus
-- [vs-command-visibility](../controlling-command-visibility/SKILL.md) — showing/hiding context menu items conditionally
-- [vs-dynamic-commands](../creating-dynamic-commands/SKILL.md) — changing menu item text or checked state dynamically
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — the most common host for custom UI that needs context menus
-- [vs-theming](../theming-extension-ui/SKILL.md) — why WPF ContextMenu doesn't theme correctly in VS
+- [vs-commands](../adding-commands/SKILL.md)
+- [vs-command-visibility](../controlling-command-visibility/SKILL.md)
+- [vs-dynamic-commands](../creating-dynamic-commands/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)

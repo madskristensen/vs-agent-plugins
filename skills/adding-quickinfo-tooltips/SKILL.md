@@ -12,7 +12,7 @@ Quick Info provides hover tooltips when the user mouses over text in the editor.
 - Add extra tooltip content to an existing language
 - Show color previews, image previews, or rich content on hover
 
-Hover tooltips are one of the most natural information-discovery gestures — developers instinctively mouse over unfamiliar symbols. Custom Quick Info providers let your extension deliver contextual information exactly when the developer needs it, without any explicit action. The modern async API runs `GetQuickInfoItemAsync` on a background thread, making it safe for network calls or file I/O. The legacy synchronous API freezes the editor on hover and is deprecated.
+Hover tooltips are one of the most natural information-discovery gestures — developers instinctively mouse over unfamiliar symbols. Custom Quick Info providers deliver contextual information exactly when the developer needs it, without any explicit action.
 
 **When to use Quick Info vs. alternatives:**
 - Hover tooltip with information about a symbol or text span → **Quick Info** (this skill)
@@ -238,23 +238,23 @@ var horizontal = new ContainerElement(
 
 ## What NOT to do
 
-> **Do NOT** use the legacy `IQuickInfoSourceProvider` / `IQuickInfoSource` API. It is **deprecated** since VS 2017 (15.6). Use `IAsyncQuickInfoSourceProvider` / `IAsyncQuickInfoSource` instead. The legacy API runs synchronously on the UI thread — any parsing, file reads, or network calls in `AugmentQuickInfoSession` will freeze the editor on hover. Old walkthroughs on Microsoft Learn and blog posts still show the legacy API; do not follow them.
+> **Do NOT** use the legacy `IQuickInfoSourceProvider`/`IQuickInfoSource` API — deprecated since VS 2017 (15.6). Use `IAsyncQuickInfoSourceProvider`/`IAsyncQuickInfoSource`. Old walkthroughs still show the legacy API; do not follow them.
 
-> **Do NOT** do heavy computation in `GetQuickInfoItemAsync`. This method is called on every mouse hover — keep it fast. If you need expensive analysis, run it on a background thread triggered by document changes and cache the results.
+> **Do NOT** do heavy computation in `GetQuickInfoItemAsync` — called on every hover. Run expensive analysis on a background thread and cache results.
 
-> **Do NOT** return an empty `QuickInfoItem` when you have nothing to contribute — return `null` instead. Returning an empty item still reserves space in the tooltip and can interfere with other providers' content.
+> **Do NOT** return an empty `QuickInfoItem` when you have nothing to contribute — return `null` instead. Empty items reserve tooltip space and interfere with other providers.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your MEF-exported provider is **silently ignored** — no error, no log, tooltips simply don't appear.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` — without it, your provider is silently ignored.
 
-> **Do NOT** hard-code colors or font sizes in tooltip content. Use `ClassifiedTextElement` and `ContainerElement` with proper classification types so your tooltips respect the user's theme (Dark, Light, High Contrast).
+> **Do NOT** hard-code colors or font sizes in tooltip content — use `ClassifiedTextElement` with proper classification types to respect the user's theme.
 
 ## See also
 
-- [vs-editor-completion](../adding-intellisense-completion/SKILL.md) — IntelliSense completion that complements hover info
-- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md) — actionable suggestions alongside informational tooltips
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers that produce the spans Quick Info can annotate
-- [vs-language-server](../integrating-language-servers/SKILL.md) — LSP provides hover as part of a full language service
-- [vs-theming](../theming-extension-ui/SKILL.md) — theme-aware tooltip content
+- [vs-editor-completion](../adding-intellisense-completion/SKILL.md)
+- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-language-server](../integrating-language-servers/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)
 
 ## References
 

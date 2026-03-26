@@ -217,17 +217,17 @@ If you need Fonts and Colors support from an out-of-process extension, use a mix
 
 ## What NOT to do
 
-> **Do NOT** hard-code RGB color values without providing per-theme defaults. Colors that look good in Light theme can be invisible in Dark or High Contrast.
+> **Do NOT** hard-code RGB color values without per-theme defaults — colors that look good in Light can be invisible in Dark or High Contrast.
 
-> **Do NOT** create your own color-picker settings UI. Use the VS Fonts & Colors infrastructure — it's what users expect and it handles theme switching automatically.
+> **Do NOT** create your own color-picker settings UI — use the VS Fonts & Colors infrastructure.
 
-> **Do NOT** use `System.Drawing.Color` or `System.Windows.Media.Color` directly in WPF elements. Use `ThemeResourceKey` or VS color service bindings so your colors update when the user changes settings.
+> **Do NOT** use `System.Drawing.Color` or `System.Windows.Media.Color` directly in WPF — use `ThemeResourceKey` or VS color service bindings.
 
 ## See also
 
-- [vs-theming](../theming-extension-ui/SKILL.md) — matching WPF UI to the VS theme
-- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md) — classifications that appear in Fonts & Colors automatically
-- [vs-options-settings](../adding-options-settings/SKILL.md) — general extension settings beyond colors
+- [vs-theming](../theming-extension-ui/SKILL.md)
+- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md)
+- [vs-options-settings](../adding-options-settings/SKILL.md)
 
 ## Additional resources
 

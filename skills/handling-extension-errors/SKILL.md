@@ -349,22 +349,22 @@ GuardedOperations.CallExtensionPoint(this, () => {
 
 ## What NOT to do
 
-> **Do NOT** swallow exceptions silently with empty `catch` blocks. At minimum, log every exception to the Output Window, TraceSource, or Activity Log. Silent failures make bugs invisible and impossible to diagnose.
+> **Do NOT** swallow exceptions silently with empty `catch` blocks — at minimum, log to the Output Window, TraceSource, or Activity Log.
 
-> **Do NOT** show raw exception messages or stack traces in user-facing message boxes. They may contain file paths, internal type names, or user data. Log the full exception; show a user-friendly summary.
+> **Do NOT** show raw exception messages or stack traces in user-facing message boxes — they may contain file paths or internal type names. Log the full exception; show a user-friendly summary.
 
-> **Do NOT** use `async void` for error-prone code paths. An unhandled exception in `async void` crashes the entire VS process. Return `Task` and use `JoinableTaskFactory.RunAsync` for fire-and-forget scenarios.
+> **Do NOT** use `async void` — unhandled exceptions crash the VS process. Return `Task` and use `JoinableTaskFactory.RunAsync` for fire-and-forget.
 
-> **Do NOT** show modal error dialogs for recoverable background errors or during solution load. Use an info bar or status bar message instead. Modal dialogs during unattended operations are unexpected and disruptive.
+> **Do NOT** show modal error dialogs for recoverable background errors or during solution load — use an info bar or status bar message instead.
 
-> **Do NOT** create a new `TraceSource` instance manually in VisualStudio.Extensibility extensions. Inject the framework-provided `TraceSource` through the constructor — it's wired to the VS log pipeline. A manually created one writes nowhere useful.
+> **Do NOT** create a new `TraceSource` manually in VisualStudio.Extensibility extensions — inject the framework-provided one through the constructor.
 
 ## See also
 
-- [vs-async-threading](../handling-async-threading/SKILL.md) — avoiding `async void` crashes and proper cancellation handling
-- [vs-message-box](../showing-message-boxes/SKILL.md) — showing error dialogs at the right severity level
-- [vs-info-bar](../showing-info-bars/SKILL.md) — non-blocking error notifications
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing build or analysis errors in the Error List
+- [vs-async-threading](../handling-async-threading/SKILL.md)
+- [vs-message-box](../showing-message-boxes/SKILL.md)
+- [vs-info-bar](../showing-info-bars/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
 
 ## References
 

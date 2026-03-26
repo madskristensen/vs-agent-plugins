@@ -528,19 +528,19 @@ int maxResults = userSettings.GetInt32("MyExtension", "MaxResults", defaultValue
 
 ## What NOT to do
 
-> **Do NOT** store settings in custom files (JSON, XML) in the extension directory. Use the VS settings store — it handles roaming, import/export, and reset automatically.
+> **Do NOT** store settings in custom files (JSON, XML) — use the VS settings store, which handles roaming, import/export, and reset automatically.
 
-> **Do NOT** access `DialogPage` properties from a background thread without `JoinableTaskFactory.SwitchToMainThreadAsync()`. `DialogPage` properties are backed by the VS registry which may require the UI thread.
+> **Do NOT** access `DialogPage` properties from a background thread without `SwitchToMainThreadAsync()` — they're backed by the VS registry which may require the UI thread.
 
-> **Do NOT** use `Registry.CurrentUser` directly for settings. Use `WritableSettingsStore` (VSSDK) or `BaseOptionModel<T>` (Toolkit) — they write to the correct VS hive and support experimental instances.
+> **Do NOT** use `Registry.CurrentUser` directly — use `WritableSettingsStore` (VSSDK) or `BaseOptionModel<T>` (Toolkit) to write to the correct VS hive.
 
-> **Do NOT** forget `[DefaultValue]` attributes. Without them, the "Reset" button in Tools > Options won't restore sensible defaults.
+> **Do NOT** forget `[DefaultValue]` attributes — without them, the "Reset" button in Tools > Options won't restore sensible defaults.
 
 ## See also
 
-- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md) — user-customizable color settings in Fonts & Colors
-- [vs-open-folder](../extending-open-folder/SKILL.md) — workspace-scoped settings for Open Folder mode
-- [vs-commands](../adding-commands/SKILL.md) — command registration (settings often gate command behavior)
+- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md)
+- [vs-open-folder](../extending-open-folder/SKILL.md)
+- [vs-commands](../adding-commands/SKILL.md)
 
 ## References
 

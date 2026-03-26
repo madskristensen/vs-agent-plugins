@@ -455,25 +455,25 @@ LSP does not define syntax colorization. To provide highlighting, bundle a TextM
 
 ## See also
 
-- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md) — syntax highlighting for LSP languages (LSP doesn't cover colorization)
-- [vs-editor-completion](../adding-intellisense-completion/SKILL.md) — MEF-based completion when a full language server isn't needed
-- [vs-codelens](../adding-codelens-indicators/SKILL.md) — CodeLens providers (LSP codeLens not yet supported in VS)
-- [vs-error-list](../integrating-error-list/SKILL.md) — how diagnostics from LSP appear in the Error List
-- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md) — hover/QuickInfo without LSP
+- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md)
+- [vs-editor-completion](../adding-intellisense-completion/SKILL.md)
+- [vs-codelens](../adding-codelens-indicators/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
+- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md)
 
 ## Key links
 
-> **Do NOT** use the legacy `LanguageService` base class (from `Microsoft.VisualStudio.Package`). It is a pre-LSP API that requires building custom scanners, parsers, and completion sources from scratch. It is far more complex, does not support the Language Server Protocol, and is not maintained. Use `ILanguageClient` (VSSDK) or `LanguageServerProvider` (Extensibility) instead. Old documentation and university course materials may still reference `LanguageService` — do not follow them.
+> **Do NOT** use the legacy `LanguageService` base class (from `Microsoft.VisualStudio.Package`) — pre-LSP, far more complex, and unmaintained. Use `ILanguageClient` (VSSDK) or `LanguageServerProvider` (Extensibility). Old docs may reference it; do not follow.
 
-> **Do NOT** use `ILanguageClientMiddleLayer` (non-generic). It is **obsolete**. Use `ILanguageClientMiddleLayer2<T>` instead, which provides strongly-typed middleware interception.
+> **Do NOT** use `ILanguageClientMiddleLayer` (non-generic) — obsolete. Use `ILanguageClientMiddleLayer2<T>` instead.
 
-> **Do NOT** update `Newtonsoft.Json` or `StreamJsonRpc` NuGet packages beyond the versions shipped with your target Visual Studio version. These packages are used internally by VS for LSP communication. Version mismatches cause `MissingMethodException`, `TypeLoadException`, or silent protocol failures at runtime. Use binding redirects if your language server requires different versions.
+> **Do NOT** update `Newtonsoft.Json` or `StreamJsonRpc` beyond VS-shipped versions — version mismatches cause `MissingMethodException` or silent protocol failures.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for the VSSDK `ILanguageClient` approach. Without it, your MEF-exported `ILanguageClient` is silently ignored and the language server never activates.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` for VSSDK `ILanguageClient` — without it, the language server never activates.
 
-> **Do NOT** use `ISuggestedAction` or custom taggers for diagnostics in languages that have an LSP server. Use `textDocument/publishDiagnostics` from LSP — it integrates with the Error List, provides squiggles, and supports code actions through `textDocument/codeAction`.
+> **Do NOT** use `ISuggestedAction` or custom taggers for diagnostics in LSP languages — use `textDocument/publishDiagnostics` and `textDocument/codeAction` instead.
 
-> **Do NOT** confuse LSP with extending built-in VS languages (C#, C++, F#). LSP is for adding support for **new** languages. To extend C#/VB, use Roslyn analyzers and code fix providers. To extend C++, use the vcpkg/MSBuild extensibility model.
+> **Do NOT** confuse LSP with extending built-in VS languages (C#, C++, F#) — LSP is for **new** languages. Use Roslyn analyzers for C#/VB.
 
 - [Add an LSP extension (VSSDK)](https://learn.microsoft.com/visualstudio/extensibility/adding-an-lsp-extension)
 - [Language Server Provider (VisualStudio.Extensibility)](https://learn.microsoft.com/visualstudio/extensibility/visualstudio.extensibility/language-server-provider/language-server-provider)

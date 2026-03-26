@@ -480,18 +480,18 @@ public IDragDropSourceController DragDropSourceController { get; } = new MyDragD
 
 ## What NOT to do
 
-> **Do NOT** use this approach with VisualStudio.Extensibility (out-of-process). `IAttachedCollectionSourceProvider` is a MEF contract that requires in-process access. The out-of-process model has no equivalent.
+> **Do NOT** use this with VisualStudio.Extensibility (out-of-process) — `IAttachedCollectionSourceProvider` requires in-process access; the out-of-process model has no equivalent.
 
-> **Do NOT** block in `HasItems` or `Items` property accessors. These are called on the UI thread during tree rendering. Load data asynchronously and update the `ObservableCollection` when ready.
+> **Do NOT** block in `HasItems` or `Items` accessors — they run on the UI thread during tree rendering. Load data asynchronously and update the `ObservableCollection` when ready.
 
-> **Do NOT** forget `[Order(Before = HierarchyItemsProviderNames.Contains)]` on your source provider. Without it, your nodes may not be processed.
+> **Do NOT** forget `[Order(Before = HierarchyItemsProviderNames.Contains)]` on your source provider — without it, your nodes may not be processed.
 
 ## See also
 
-- [vs-solution-explorer](../interacting-solution-explorer/SKILL.md) — querying and selecting existing Solution Explorer items
-- [vs-context-menu](../adding-context-menus/SKILL.md) — adding right-click actions (can be combined with custom nodes)
-- [vs-tool-window](../adding-tool-windows/SKILL.md) — alternative: show data in a dedicated tool window
-- [vs-theming](../theming-extension-ui/SKILL.md) — theming custom node UI if using WPF elements
+- [vs-solution-explorer](../interacting-solution-explorer/SKILL.md)
+- [vs-context-menu](../adding-context-menus/SKILL.md)
+- [vs-tool-window](../adding-tool-windows/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)
 
 ## Additional resources
 

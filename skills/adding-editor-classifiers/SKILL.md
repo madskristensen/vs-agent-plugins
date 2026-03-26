@@ -279,21 +279,21 @@ To add classifications on top of an existing language (e.g., highlight custom id
 
 ## What NOT to do
 
-> **Do NOT** do heavy parsing or I/O in `GetClassificationSpans`. It runs synchronously on every render pass — any delay is directly visible as editor lag. Parse on a background thread and cache the results.
+> **Do NOT** do heavy parsing or I/O in `GetClassificationSpans` — it runs synchronously on every render pass. Parse on a background thread and cache results.
 
-> **Do NOT** hard-code colors in `ClassificationFormatDefinition` without considering Dark and High Contrast themes. Use VS theme-aware color tokens or define per-theme overrides.
+> **Do NOT** hard-code colors in `ClassificationFormatDefinition` without considering Dark and High Contrast themes — use VS theme-aware color tokens or per-theme overrides.
 
-> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest`. Without it, your classifier provider and format definitions are silently ignored.
+> **Do NOT** forget the `MefComponent` asset type in `.vsixmanifest` — without it, your classifier provider and format definitions are silently ignored.
 
-> **Do NOT** forget to fire `ClassificationChanged` when your cached parse results update. Without it, the editor won't re-query your classifier and stale highlighting persists until the user scrolls.
+> **Do NOT** forget to fire `ClassificationChanged` when cached parse results update — without it, stale highlighting persists until the user scrolls.
 
 ## See also
 
-- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md) — lightweight syntax coloring without writing a classifier
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers as a lower-level alternative to classifiers
-- [vs-editor-adornment](../adding-editor-adornments/SKILL.md) — visual decorations beyond text coloring
-- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md) — integrating with the VS Fonts & Colors settings
-- [vs-theming](../theming-extension-ui/SKILL.md) — theme-aware color definitions
+- [vs-textmate-grammar](../adding-textmate-grammars/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-adornment](../adding-editor-adornments/SKILL.md)
+- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md)
+- [vs-theming](../theming-extension-ui/SKILL.md)
 
 ## References
 

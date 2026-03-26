@@ -322,18 +322,18 @@ var unsubscriber = await singleSolution
 
 ## What NOT to do
 
-> **Do NOT** use `DTE.Solution` or `DTE.SelectedItems` for solution exploration in new extensions. The DTE automation model is deprecated, requires the UI thread, and has limited functionality compared to the Project Query API or Toolkit wrappers.
+> **Do NOT** use `DTE.Solution` or `DTE.SelectedItems` in new extensions — deprecated, requires UI thread, limited vs. Project Query API or Toolkit wrappers.
 
-> **Do NOT** manipulate Solution Explorer UI (expand, collapse, select) from a background thread. All `IVsUIHierarchyWindow` operations require the main thread.
+> **Do NOT** manipulate Solution Explorer UI from a background thread — all `IVsUIHierarchyWindow` operations require the main thread.
 
-> **Do NOT** cache hierarchy item IDs across sessions. `VSITEMID` values are not stable and may change when the solution reloads.
+> **Do NOT** cache `VSITEMID` values across sessions — they're not stable and may change on solution reload.
 
 ## See also
 
-- [vs-solution-explorer-nodes](../adding-solution-explorer-nodes/SKILL.md) — adding custom virtual nodes to the tree
-- [vs-solution-events](../handling-solution-events/SKILL.md) — detecting when solutions load to trigger exploration
-- [vs-context-menu](../adding-context-menus/SKILL.md) — adding right-click actions to Solution Explorer items
-- [vs-file-document-ops](../managing-files-documents/SKILL.md) — opening files discovered through Solution Explorer
+- [vs-solution-explorer-nodes](../adding-solution-explorer-nodes/SKILL.md)
+- [vs-solution-events](../handling-solution-events/SKILL.md)
+- [vs-context-menu](../adding-context-menus/SKILL.md)
+- [vs-file-document-ops](../managing-files-documents/SKILL.md)
 
 ## Additional resources
 

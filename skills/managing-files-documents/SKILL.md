@@ -415,21 +415,21 @@ public class MyRunningDocTableEvents : IVsRunningDocTableEvents3
 
 ## What NOT to do
 
-> **Do NOT** use `System.IO.File.ReadAllText` to read files that may be open in VS. The in-memory buffer may have unsaved changes. Use the VS document/text buffer APIs to get the current content.
+> **Do NOT** use `System.IO.File.ReadAllText` for files open in VS — the in-memory buffer may have unsaved changes. Use VS document/text buffer APIs.
 
-> **Do NOT** modify files on disk while they're open in VS without going through the document APIs. Direct file writes cause out-of-sync warnings and can corrupt the user's undo history.
+> **Do NOT** modify files on disk while open in VS without going through document APIs — causes out-of-sync warnings and corrupts undo history.
 
-> **Do NOT** forget to dispose `ITextEdit` objects. Always use `using` blocks for text edit sessions.
+> **Do NOT** forget to dispose `ITextEdit` objects — always use `using` blocks for text edit sessions.
 
-> **Do NOT** assume the active document is a text document. It could be a designer, binary, or image file. Check the document type before accessing text buffer APIs.
+> **Do NOT** assume the active document is a text document — it could be a designer, binary, or image file.
 
 ## See also
 
-- [vs-editor-text-view-listener](../listening-text-view-events/SKILL.md) — reacting to text view open/close
-- [vs-command-intercept](../intercepting-commands/SKILL.md) — intercepting Save, Open, or other document commands
-- [vs-solution-events](../handling-solution-events/SKILL.md) — solution/project lifecycle events
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing analysis results from document content
-- [vs-async-threading](../handling-async-threading/SKILL.md) — thread-safe patterns for document access
+- [vs-editor-text-view-listener](../listening-text-view-events/SKILL.md)
+- [vs-command-intercept](../intercepting-commands/SKILL.md)
+- [vs-solution-events](../handling-solution-events/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
+- [vs-async-threading](../handling-async-threading/SKILL.md)
 
 ## References
 

@@ -14,7 +14,7 @@ Common scenarios:
 - Suggest code generation or transformation based on context
 - Add custom actions to the lightbulb menu for any content type
 
-This skill covers the `ISuggestedAction` interface family in depth. The API has evolved across VS versions (`ISuggestedAction` → `ISuggestedAction2` → `ISuggestedAction3`, and `ISuggestedActionsSource` → `ISuggestedActionsSource2` → `IAsyncSuggestedActionsSource`). Using the newest interface your minimum target supports gives you async support, priority control, and incremental results — which significantly improves lightbulb responsiveness.
+This skill covers the `ISuggestedAction` interface family in depth. The API has evolved across VS versions — using the newest interface your minimum target supports gives you async support, priority control, and incremental results.
 
 **When to use this vs. alternatives:**
 - Language-agnostic code actions for the lightbulb → **this skill** (`ISuggestedAction`)
@@ -675,10 +675,10 @@ private void OnAnalysisCompleted()
 
 ## See also
 
-- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md) — high-level light bulb patterns and overview
-- [vs-editor-tagger](../creating-editor-taggers/SKILL.md) — taggers that produce diagnostic squiggles light bulbs can fix
-- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md) — hover tooltips as complementary information
-- [vs-error-list](../integrating-error-list/SKILL.md) — surfacing errors alongside light bulb fixes
+- [vs-editor-lightbulb](../adding-lightbulb-actions/SKILL.md)
+- [vs-editor-tagger](../creating-editor-taggers/SKILL.md)
+- [vs-editor-quickinfo](../adding-quickinfo-tooltips/SKILL.md)
+- [vs-error-list](../integrating-error-list/SKILL.md)
 
 ## References
 

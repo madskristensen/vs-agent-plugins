@@ -9,7 +9,7 @@ TextMate grammars provide lightweight syntax highlighting, bracket matching, and
 
 A TextMate grammar is a `.tmlanguage`, `.plist`, or `.json` file that defines regex-based scope rules. You bundle it in a VSIX extension, register it with a `.pkgdef` file, and Visual Studio picks it up for any matching file extension.
 
-TextMate grammars are the fastest path to syntax highlighting for a new file type. They require no compiled code, work with VS's existing colorization pipeline, and can often be ported directly from VS Code or Sublime Text. For languages that also need IntelliSense, pair a TextMate grammar with an LSP server — LSP handles features but not colorization.
+TextMate grammars are the fastest path to syntax highlighting for a new file type — they require no compiled code, work with VS's existing colorization pipeline, and can often be ported directly from VS Code or Sublime Text.
 
 **When to use this vs. alternatives:**
 - Quick syntax coloring for a new file type with no compiled code → **TextMate grammar** (this skill)
@@ -368,19 +368,19 @@ This is useful for personal use but not for distribution.
 
 ## What NOT to do
 
-> **Do NOT** include `package.json`, VS Code commands, or VS Code snippet files in your VS TextMate extension. VS ignores these — only grammar (`.tmLanguage`/`.json`) and theme (`.tmTheme`) files are used.
+> **Do NOT** include `package.json`, VS Code commands, or VS Code snippet files — VS ignores these; only grammar and theme files are used.
 
-> **Do NOT** use `begin/while` patterns in grammars targeting Visual Studio. They're not supported. Use `begin/end` patterns instead.
+> **Do NOT** use `begin/while` patterns — not supported in VS. Use `begin/end` instead.
 
-> **Do NOT** write a full MEF `IClassifier` just for syntax coloring. TextMate grammars achieve the same result with no compiled code and are portable across editors.
+> **Do NOT** write a full MEF `IClassifier` just for syntax coloring — TextMate grammars achieve the same result with no compiled code and are portable.
 
-> **Do NOT** register grammars via MEF exports. TextMate grammars are registered via `.pkgdef` files pointing to a grammar repository directory.
+> **Do NOT** register grammars via MEF exports — use `.pkgdef` files pointing to a grammar repository directory.
 
 ## See also
 
-- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md) — MEF classifiers for dynamic/context-dependent highlighting
-- [vs-language-server](../integrating-language-servers/SKILL.md) — LSP servers that pair with TextMate grammars for full language support
-- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md) — user-customizable colors for classification items
+- [vs-editor-classifier](../adding-editor-classifiers/SKILL.md)
+- [vs-language-server](../integrating-language-servers/SKILL.md)
+- [vs-fonts-and-colors](../registering-fonts-colors/SKILL.md)
 
 ## Related documentation
 
