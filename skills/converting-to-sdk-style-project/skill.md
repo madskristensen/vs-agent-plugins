@@ -252,7 +252,7 @@ dotnet sln migrate
 
 #### Add the Deploy element
 
-In the `.slnx` file, add a `<Deploy>` element to the VSIX project entry. This replaces the old `StartAction`/`StartProgram`/`StartArguments` pattern from the legacy csproj and is **required for F5 debugging** to deploy the VSIX to the experimental instance:
+In the `.slnx` file, you MUST add a `<Deploy>` element to the VSIX project entry. This replaces the old `StartAction`/`StartProgram`/`StartArguments` pattern from the legacy csproj and is **required for F5 debugging** to deploy the VSIX to the experimental instance:
 
 ```xml
 <Solution>

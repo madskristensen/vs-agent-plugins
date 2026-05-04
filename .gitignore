@@ -1,7 +1,7 @@
 # Build / output
 bin/
 obj/
-*.dll
+# *.dll
 *.exe
 *.pdb
 
