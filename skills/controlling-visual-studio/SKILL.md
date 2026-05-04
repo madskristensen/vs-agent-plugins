@@ -1,25 +1,29 @@
 ---
-name: visualstudio-dte-access
+name: controlling-visual-studio
 description: >
-  Drive a running Visual Studio IDE from PowerShell via the EnvDTE COM
-  automation object. Use for any task that needs to open files (optionally at a
-  specific line), execute DTE commands (e.g. File.SaveAll, Build.BuildSolution,
-  Edit.FormatDocument), inspect or control the debugger, enumerate
-  projects/items, or otherwise programmatically interact with a live Visual
-  Studio instance from a terminal or agent. Triggers on phrases such as "open
-  in Visual Studio", "open file at line", "run VS command", "execute DTE",
-  "build the solution from terminal", "save all in VS", "go to line in VS", or
-  any task requiring DTE automation from PowerShell.
+  Control a running Visual Studio IDE instance from the agent's terminal. Use
+  this skill whenever you need to make Visual Studio *do* something — open a
+  file (optionally at a specific line), execute any IDE command
+  (Build.BuildSolution, Edit.FormatDocument, File.SaveAll, Debug.Start, etc.),
+  start or stop the debugger, enumerate or modify projects and documents, or
+  otherwise programmatically operate the live VS instance the user is working
+  in. Works by acquiring the `EnvDTE.DTE` COM automation object from the
+  Windows Running Object Table (ROT) via PowerShell. Triggers on phrases such
+  as "open in Visual Studio", "open file at line", "run VS command", "execute
+  DTE", "build the solution", "save all in VS", "go to line in VS", "start
+  debugging", or any task that requires controlling the live VS IDE.
+  Windows-local only — does not work over SSH, WSL, dev containers, or
+  Codespaces.
 author: Terrence Jones
 version: 2.0.0
 specification: https://agentskills.io/specification
 ---
 
-# Visual Studio DTE Access from PowerShell
+# Controlling Visual Studio from PowerShell
 
-Drive a running Visual Studio instance from a PowerShell terminal by acquiring
-its `EnvDTE.DTE` COM automation object out of the Windows Running Object
-Table (ROT).
+Control a running Visual Studio instance from a PowerShell terminal by
+acquiring its `EnvDTE.DTE` COM automation object out of the Windows Running
+Object Table (ROT).
 
 > **Scope:** Windows-local only. Does **not** work over SSH, WSL, dev
 > containers, or Codespaces — the ROT is per-Windows-session.
@@ -27,7 +31,7 @@ Table (ROT).
 ## Layout
 
 ```
-visualstudio-dte-access/
+controlling-visual-studio/
 ├── SKILL.md                      ← this file
 ├── scripts/
 │   ├── RotHelper.dll             ← prebuilt P/Invoke + ROT helper (~4 KB)

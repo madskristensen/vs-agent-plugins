@@ -1,4 +1,4 @@
-// Helper assembly for the visualstudio-dte-access skill.
+// Helper assembly for the controlling-visual-studio skill.
 //
 // Provides two static classes:
 //   ProcessHelper - fast P/Invoke parent-process walk via NtQueryInformationProcess.

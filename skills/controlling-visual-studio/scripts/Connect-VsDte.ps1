@@ -1,7 +1,7 @@
-# Bootstrap + helper functions for the visualstudio-dte-access skill.
+# Bootstrap + helper functions for the controlling-visual-studio skill.
 #
 # Dot-source from anywhere:
-#     . 'C:\path\to\skills\visualstudio-dte-access\scripts\Connect-VsDte.ps1'
+#     . 'C:\path\to\skills\controlling-visual-studio\scripts\Connect-VsDte.ps1'
 #
 # Then use:
 #     $dte = Get-VsDte
