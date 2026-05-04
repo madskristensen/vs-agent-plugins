@@ -14,9 +14,6 @@ description: >
   debugging", or any task that requires controlling the live VS IDE.
   Windows-local only — does not work over SSH, WSL, dev containers, or
   Codespaces.
-author: Terrence Jones
-version: 2.0.0
-specification: https://agentskills.io/specification
 ---
 
 # Controlling Visual Studio from PowerShell
@@ -30,7 +27,7 @@ Object Table (ROT).
 
 ## Layout
 
-```
+```text
 controlling-visual-studio/
 ├── SKILL.md                      ← this file
 ├── scripts/
@@ -84,13 +81,13 @@ the same session reuse it (with a liveness check).
 
 ## Verbs exposed by `Connect-VsDte.ps1`
 
-| Function              | Purpose                                                                  |
-| --------------------- | ------------------------------------------------------------------------ |
-| `Get-VsDte`           | Acquire (or reuse cached) DTE for the host VS instance.                  |
-| `Open-VsFile`         | Open a file, optionally jumping to `Line`/`Column`.                      |
-| `Invoke-VsCommand`    | Call `DTE.ExecuteCommand(name, args)`.                                   |
-| `Invoke-VsBuild`      | Build the solution; sync or async-with-timeout.                          |
-| `Invoke-WithComRetry` | Wrap any DTE call to retry `RPC_E_CALL_REJECTED` / `RETRYLATER`.         |
+| Function              | Purpose                                                          |
+| --------------------- | ---------------------------------------------------------------- |
+| `Get-VsDte`           | Acquire (or reuse cached) DTE for the host VS instance.          |
+| `Open-VsFile`         | Open a file, optionally jumping to `Line`/`Column`.              |
+| `Invoke-VsCommand`    | Call `DTE.ExecuteCommand(name, args)`.                           |
+| `Invoke-VsBuild`      | Build the solution; sync or async-with-timeout.                  |
+| `Invoke-WithComRetry` | Wrap any DTE call to retry `RPC_E_CALL_REJECTED` / `RETRYLATER`. |
 
 Discover command names via `(Get-VsDte).Commands | ? Name | Select Name`.
 
@@ -111,13 +108,13 @@ git -C $repoRoot status --porcelain=v1 | ForEach-Object {
 
 Per-invocation wall time on a modern dev box (cold pwsh, warm DLL):
 
-| Phase                       | Time      |
-| --------------------------- | --------- |
-| `pwsh.exe` startup          | ~300–400 ms |
-| `Add-Type -Path` (load DLL) | ~60–110 ms |
-| Parent-process walk         | ~5 ms     |
-| ROT enumeration             | ~25 ms    |
-| First DTE call              | ~30 ms    |
+| Phase                       | Time            |
+| --------------------------- | --------------- |
+| `pwsh.exe` startup          | ~300–400 ms     |
+| `Add-Type -Path` (load DLL) | ~60–110 ms      |
+| Parent-process walk         | ~5 ms           |
+| ROT enumeration             | ~25 ms          |
+| First DTE call              | ~30 ms          |
 | **Total**                   | **~450–550 ms** |
 
 For lower latency (~5–10 ms per call) consider an in-VS named-pipe server
@@ -148,12 +145,12 @@ This regenerates `scripts/RotHelper.dll`.
 
 ## Troubleshooting
 
-| Symptom                                        | Cause                                                | Fix                                                                  |
-| ---------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
-| ``RotHelper.dll not found``                    | Skill checked in without binary, or moved            | Run ``src/build.ps1`` to regenerate.                                 |
-| ROT empty but ``devenv.exe`` is running        | Integrity-level mismatch                             | Match elevation between VS and pwsh.                                 |
-| ``RPC_E_CALL_REJECTED`` / ``RETRYLATER``       | VS busy                                              | Wrap in ``Invoke-WithComRetry``.                                     |
-| Wrong instance picked                          | Multiple devenvs, terminal not a child of VS         | Pass ``-SolutionMatch '*Name*'`` to ``Get-VsDte``.                   |
-| ``MoveToLineAndOffset`` throws                 | Active item is not a text document (e.g. designer)   | ``Open-VsFile`` already best-efforts this; check ``Document.Type``.  |
-| Hangs in ``Invoke-VsBuild``                    | Long build, or VS prompting                          | Increase ``-TimeoutSeconds``; check VS UI for modal dialogs.         |
-| Works in Windows PowerShell, fails in pwsh 7   | MTA apartment                                        | Launch with ``pwsh -STA`` for sessions making many DTE calls.        |
+| Symptom                                      | Cause                                              | Fix                                                                 |
+| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------- |
+| ``RotHelper.dll not found``                  | Skill checked in without binary, or moved          | Run ``src/build.ps1`` to regenerate.                                |
+| ROT empty but ``devenv.exe`` is running      | Integrity-level mismatch                           | Match elevation between VS and pwsh.                                |
+| ``RPC_E_CALL_REJECTED`` / ``RETRYLATER``     | VS busy                                            | Wrap in ``Invoke-WithComRetry``.                                    |
+| Wrong instance picked                        | Multiple devenvs, terminal not a child of VS       | Pass ``-SolutionMatch '*Name*'`` to ``Get-VsDte``.                  |
+| ``MoveToLineAndOffset`` throws               | Active item is not a text document (e.g. designer) | ``Open-VsFile`` already best-efforts this; check ``Document.Type``. |
+| Hangs in ``Invoke-VsBuild``                  | Long build, or VS prompting                        | Increase ``-TimeoutSeconds``; check VS UI for modal dialogs.        |
+| Works in Windows PowerShell, fails in pwsh 7 | MTA apartment                                      | Launch with ``pwsh -STA`` for sessions making many DTE calls.       |
