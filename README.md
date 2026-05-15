@@ -24,7 +24,7 @@ The [GitHub Node](https://marketplace.visualstudio.com/items?itemName=MadsKriste
    - Right-click the **GitHub** node in Solution Explorer and select **Manage Marketplaces**
    - Click **Add** and enter:
      ```
-     madsk/vs-agent-plugins
+     madskristensen/vs-agent-plugins
      ```
    - The extension clones the repository locally and caches it for 7 days
 
