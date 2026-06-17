@@ -1,0 +1,21 @@
+{
+  "name": "vs-agent-plugins",
+  "interface": {
+    "displayName": "Visual Studio IDE Agent Skills"
+  },
+  "plugins": [
+    {
+      "name": "vs-agent-plugins",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/madskristensen/vs-agent-plugins.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

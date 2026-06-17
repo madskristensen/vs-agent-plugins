@@ -35,13 +35,31 @@ The [GitHub Node](https://marketplace.visualstudio.com/items?itemName=MadsKriste
 
 Once installed, Copilot in Visual Studio will automatically pick up the skills from the `.github` folder and use them when you ask it to help with extension development.
 
-### Option 2 — Copy skills manually to your repository
+### Option 2 — Install in Codex
+
+```bash
+codex plugin marketplace add madskristensen/vs-agent-plugins
+codex
+```
+
+Open `/plugins`, select the **Visual Studio IDE Agent Skills** marketplace, and install **vs-agent-plugins**. Start a new thread after installing so Codex loads the skills.
+
+### Option 3 — Install in Claude Code
+
+```text
+/plugin marketplace add madskristensen/vs-agent-plugins
+/plugin install vs-extensibility-skills@vs-agent-plugins
+```
+
+Start a new conversation after installing so Claude Code loads the skills.
+
+### Option 4 — Copy skills manually to your repository
 
 No extension required. Copy the skills you need directly into your repo's `.github` folder:
 
 1. **Clone this repository** (or download it as a ZIP):
    ```
-   git clone https://github.com/madsk/vs-agent-plugins.git
+   git clone https://github.com/madskristensen/vs-agent-plugins.git
    ```
 
 2. **Copy the `skills` folder** into your project's `.github` directory:
@@ -111,10 +129,16 @@ No extension required. Copy the skills you need directly into your repo's `.gith
 
 ```
 vs-agent-plugins/
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json      # Codex marketplace manifest
+├── .codex-plugin/
+│   └── plugin.json               # Codex plugin manifest
 ├── .github/
 │   └── copilot-instructions.md   # Repo-level Copilot instructions
 ├── .claude-plugin/
-│   └── marketplace.json          # Agent marketplace manifest
+│   ├── marketplace.json          # Claude marketplace manifest
+│   └── plugin.json               # Claude plugin manifest
 ├── skills/
 │   └── <skill-name>/
 │       └── SKILL.md              # Skill instructions and code examples
