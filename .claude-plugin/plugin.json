@@ -1,0 +1,9 @@
+{
+  "name": "vs-extensibility-skills",
+  "version": "0.1.0",
+  "description": "Skills for Visual Studio IDE extension development.",
+  "author": {
+    "name": "Mads Kristensen",
+    "url": "https://github.com/madskristensen"
+  }
+}
