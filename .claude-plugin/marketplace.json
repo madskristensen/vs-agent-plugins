@@ -40,7 +40,7 @@
         "./skills/theming-extension-ui",
         "./skills/registering-fonts-colors",
         "./skills/interacting-solution-explorer",
-        "./skills/interacting-solution-explorer-nodes",
+        "./skills/adding-solution-explorer-nodes",
         "./skills/adding-context-menus",
         "./skills/creating-dynamic-commands",
         "./skills/handling-protocol-uris",
