@@ -1,0 +1,3 @@
+# Files and directories to exclude when the plugin is installed by Codex
+.git
+.github
