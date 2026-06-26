@@ -1,0 +1,29 @@
+{
+  "name": "vs-agent-plugins",
+  "version": "0.1.0",
+  "description": "Agent skills for Visual Studio IDE extension development.",
+  "author": {
+    "name": "Mads Kristensen",
+    "url": "https://github.com/madskristensen"
+  },
+  "homepage": "https://github.com/madskristensen/vs-agent-plugins",
+  "repository": "https://github.com/madskristensen/vs-agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["visual-studio", "vsix", "extensions", "agent-skills"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Visual Studio IDE Agent Skills",
+    "shortDescription": "Skills for Visual Studio extension development",
+    "longDescription": "Guidance for building Visual Studio extensions with VisualStudio.Extensibility, VSIX Community Toolkit, and VSSDK.",
+    "developerName": "Mads Kristensen",
+    "category": "Developer Tools",
+    "capabilities": ["Instructions"],
+    "websiteURL": "https://github.com/madskristensen/vs-agent-plugins",
+    "defaultPrompt": [
+      "Add a Visual Studio command.",
+      "Create a Visual Studio tool window.",
+      "Fix async threading in this VS extension."
+    ],
+    "brandColor": "#68217A"
+  }
+}

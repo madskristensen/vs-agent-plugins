@@ -190,8 +190,8 @@ internal sealed class OutliningTagger : ITagger<IOutliningRegionTag>
             yield break;
 
         ITextSnapshot snapshot = spans[0].Snapshot;
-        string startToken = "#region";
-        string endToken = "#endregion";
+        string openKeyword = "#region";
+        string closeKeyword = "#endregion";
 
         var startLines = new Stack<ITextSnapshotLine>();
 
@@ -199,11 +199,11 @@ internal sealed class OutliningTagger : ITagger<IOutliningRegionTag>
         {
             string text = line.GetText().TrimStart();
 
-            if (text.StartsWith(startToken, StringComparison.OrdinalIgnoreCase))
+            if (text.StartsWith(openKeyword, StringComparison.OrdinalIgnoreCase))
             {
                 startLines.Push(line);
             }
-            else if (text.StartsWith(endToken, StringComparison.OrdinalIgnoreCase)
+            else if (text.StartsWith(closeKeyword, StringComparison.OrdinalIgnoreCase)
                      && startLines.Count > 0)
             {
                 var startLine = startLines.Pop();
